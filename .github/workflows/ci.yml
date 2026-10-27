@@ -170,6 +170,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" publish/* --verify-tag --draft --title "Scan Reprint $GITHUB_REF_NAME" --notes-file docs/RELEASE_NOTES.md
-          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$GITHUB_REF_NAME" > release-response.json
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" > release-list.json
+          release_id="$(node scripts/release-id.mjs)"
+          gh api "repos/$GITHUB_REPOSITORY/releases/$release_id" > release-response.json
           node scripts/verify-release-assets.mjs
-          gh release edit "$GITHUB_REF_NAME" --draft=false --latest
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" -F draft=false -f make_latest=true
