@@ -64,3 +64,14 @@ test('page dimensions, outer white margins and packed padding stay bounded',asyn
   }
   const used=r.width%8;if(used)for(let y=0;y<r.height;y++)assert.equal(r.bits[(y+1)*Math.ceil(r.width/8)-1]&((1<<(8-used))-1),0);
 });
+
+test('QR and Data Matrix include real ASCII caption pixels',async()=>{
+  for(const symbology of ['qrcode','datamatrix'] as const){
+    const label=validate({raw:'000aBc',settings:{...defaults,symbology}});
+    const r=await rasterize(label),without=await rasterize({...label,settings:{...label.settings,humanText:false}});
+    assert.notDeepEqual(r.bits,without.bits);
+    const p=PNG.sync.read(r.png);let lastBlack=-1;
+    for(let y=0;y<p.height;y++)for(let x=0;x<p.width;x++)if(p.data[(y*p.width+x)*4]===0)lastBlack=y;
+    assert.ok(lastBlack>p.height/2,'caption appears below the centered code');
+  }
+});

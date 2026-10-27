@@ -16,7 +16,7 @@ export async function systemPrint(label:Label,r:Raster):Promise<void> {
     const printers=await beforeSubmission(win.webContents.getPrintersAsync());
     if(!printers.some(p=>p.name===label.settings.printer))throw new Error('选定打印机已不可用');
     await submitSpooler(callback=>win.webContents.print({silent:true,deviceName:label.settings.printer,printBackground:true,
-      copies:label.settings.copies,pageRanges:'1',margins:{marginType:'none'},pageSize:{width:Math.round(label.settings.width*1000),height:Math.round(label.settings.height*1000)},
+      copies:label.settings.copies,pageRanges:[{from:0,to:0}],margins:{marginType:'none'},pageSize:{width:Math.round(label.settings.width*1000),height:Math.round(label.settings.height*1000)},
       dpi:{horizontal:label.settings.dpi,vertical:label.settings.dpi}},callback));
   } finally {win.destroy();}
 }
