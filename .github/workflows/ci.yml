@@ -98,6 +98,9 @@ jobs:
       - name: Smoke the packaged Windows application
         if: matrix.platform == 'win'
         run: node scripts/packaged-smoke.mjs
+      - name: Real NSIS install, 0.2.0 upgrade, language handoff and uninstall
+        if: matrix.platform == 'win'
+        run: node scripts/installer-smoke.mjs
       - name: Smoke the packaged Ubuntu amd64 application
         if: matrix.platform == 'linux' && matrix.arch == 'x64'
         run: xvfb-run -a node scripts/packaged-smoke.mjs
@@ -172,7 +175,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" publish/* --verify-tag --draft --title "Scan Reprint $GITHUB_REF_NAME" --notes-file docs/RELEASE_NOTES.md
+          gh release create "$GITHUB_REF_NAME" publish/* --verify-tag --draft --title "YOVAL Scan Reprint $GITHUB_REF_NAME" --notes-file docs/RELEASE_NOTES.md
           gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" > release-list.json
           release_id="$(node scripts/release-id.mjs)"
           gh api "repos/$GITHUB_REPOSITORY/releases/$release_id" > release-response.json

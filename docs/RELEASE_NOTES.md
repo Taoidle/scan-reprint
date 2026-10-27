@@ -1,25 +1,17 @@
-# Scan Reprint v0.2.0
+# YOVAL Scan Reprint v0.2.1
 
-本次更新将主界面改为“配置一次，开始扫码”的工作台，并加入原创应用图标。
+v0.2.1 带来 YOVAL 品牌与完整中英 i18n。六个安装文件从不可变 v0.2.1 tag 在 GitHub Actions 重新构建；附件包含 SHA256SUMS.txt 和记录 tag、commit、run 的 build-info.json。旧版本 tag 与附件保留。
 
-- 保存打印机、标签尺寸、DPI、码制、份数与重复码策略，重开后保留；默认每次扫描 1 份。配置校验、版本迁移和损坏文件备份恢复独立于打印历史，设置文件不保存条码内容。
-- 配置扫码枪为 USB HID 键盘模式 + Enter 后缀，点击“开始扫码”后，在应用前台连续扫描即可自动加入串行打印队列，无需反复点击输入框。键盘操作可聚焦开始按钮后按 Alt+Enter；普通 Enter/空格不会意外启动。
-- 暂停、Esc、切出应用、打开配置/手工测试或弹窗会停止接收并丢弃半帧；返回后需明确开始。没有后台系统级键盘监听。暂停仅停止新扫描，已入队任务仍按序处理。
-- 相同码可以每次完整扫描都打印，或按 100–60000 ms 自选防抖窗口拦截；同一会话帧重复提交只入队一次。失败或不确定结果不自动重打。
-- 手工输入移到独立“手工测试”区，需确认试印。保留前导零、大小写与空格，不猜码制，不支持的 GS1/FNC1、二进制、控制字符明确拒绝。
-- 原创深蓝/青绿扫描框、条码与回转箭头图标；SVG 统一生成 Windows 多尺寸 ICO、Linux PNG，并配置安装包、EXE 和应用窗口资源。
+- 产品统一命名 **YOVAL Scan Reprint**，发布者元数据 **广州铱川创新科技有限公司**。窗口、应用界面、EXE 版本信息、安装/卸载入口、Linux desktop 信息统一；原应用 ID、用户数据路径和条码 payload 保持不变。
+- Windows 安装第一页选择 **跟随系统 / 简体中文 / English**，控制后续安装器文字并提供当前用户的应用首次语言。Linux 在首次启动选择。已保存的语言优先，升级不会覆盖。
+- `auto` 每次启动匹配系统中/英语言，其他或未知语言回落简体中文。配置页可随时切换并持久化；切换会暂停扫码，不触发打印。
+- 工作台、配置、手工测试、弹窗、状态、提示与校验错误使用中英消息目录。新历史详情保存结构化 code/params，按当前语言显示；旧中文详情保留原文，打印机名和用户内容不翻译。
+- 沿用明确开始/暂停、完整 HID + Enter 扫描帧、可配置重复码、串行队列、失败/不确定不自动重打和原创应用图标。
 
-升级后首次打开请进入“配置”选择打印机并保存，再到“手工测试”试印，确认纸张与 DPI 后开始扫码。0.1.0 没有持久化设置，因此首次升级需要配置；已有本机历史保留，每次启动始终暂停。无自动更新，请下载对应系统的新安装包。
+English: v0.2.1 introduces YOVAL branding and a per-user Chinese/English language preference. Choose the installer/first-run language or change it in Configuration. Follow system resolves English or Chinese on each launch and falls back to Chinese otherwise. Upgrades preserve existing settings, history and language choices. Switching language never starts scanning or prints a label. See [English quick start](QUICKSTART.en.md).
 
-六个安装文件由本次 tag 的 GitHub Actions 重新构建，包含 Windows legacy/modern x64 EXE、Ubuntu amd64/arm64 各 deb 和 AppImage。请用 SHA256SUMS.txt 核对下载；build-info.json 记录本次构建的 commit、tag 和 Actions run。发布前验证 lint、typecheck、38 项单元测试、真实 Electron 工作流与四目标生产包 smoke、图标资源和六包 SHA256。
+全部测试与构建仅在 GitHub Actions，包括四目标 Electron UI/生产包、语言与输入边界、Windows 实际静默安装旧版后升级/启动/卸载、品牌元数据与图标资源。交互 NSIS 鼠标操作、真实扫码枪/打印机及 Win7 实机仍需人工验收。正式构建来源以附件 build-info.json 和对应 tag 的 Actions run 为准。
 
-兼容与验收边界：
+兼容限制：Windows legacy x64 使用已 EOL 的 Electron 22.3.27，现代 Windows x64 与 Ubuntu 22.04+ amd64/arm64 使用独立现代运行时；不含 Windows x86/macOS。安装包未签名，公司元数据不代表 Windows 已验证发布者。所有打印提交均不承诺物理出纸。MIT 和第三方版权保留。既有 v0.1.0/v0.2.0 tag 与 Release 不变。
 
-- legacy Windows x64：Electron 22.3.27，目标 Win7 SP1/8/8.1；已 EOL，独立依赖审计仍存在已知 high 风险，仅限隔离环境使用。Windows Server 2022 CI 通过不等于 Win7 实机通过。
-- modern Windows x64：Electron 44.9.3，Windows 10/11。
-- Ubuntu 22.04+ amd64/arm64：ARM64 在原生 ARM runner 的 Ubuntu 22.04 容器验证；AppImage 需要 FUSE 2。
-- 不含 Windows x86、macOS。所有包未签名，Windows 可能提示未知发布者/SmartScreen。
-- 真实扫码枪、打印机、Win7、实体 ARM64 桌面、切换到其他 OS 程序、安装/卸载与任务栏/开始菜单图标缓存尚未实机验收。CI 使用 mock socket/spooler 和真实 Electron；窗口 blur 使用原生事件注入，Linux 使用 Xvfb/--no-sandbox，不能代替现场验收。
-- “已提交”仅表示系统/网络接受，不代表物理出纸。失败/不确定时先核对设备，再明确重打。TSPL 仅连续纸；码下文字仅 ASCII，中文 QR 需关闭码下文字。按内容和码制重建，不克隆原标签图像。
-
-详细教程见 README，现场验收清单见 docs/ACCEPTANCE.md。v0.1.0 tag 和原 Release 保持不变。
+[语言、升级与验证说明](BRANDING-I18N.md) · [使用教程](../README.md) · [现场验收](ACCEPTANCE.md)

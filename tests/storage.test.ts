@@ -18,6 +18,6 @@ test('malformed, contradictory, duplicate and oversized histories fail closed',(
   const record=job();
   for(const value of [null,{},[null],[{...record,id:'bad'}],[record,record],[{...record,created:'invalid'}],[{...record,label:{...record.label,content:'different'}}],Array(201).fill(record)])assert.throws(()=>parseHistory(value));
   const dir=mkdtempSync(join(tmpdir(),'scan-reprint-test-')),path=join(dir,'history.json');
-  try {writeFileSync(path,'x'.repeat(4*1024*1024+1));assert.throws(()=>loadHistory(path),/过大/);}
+  try {writeFileSync(path,'x'.repeat(4*1024*1024+1));assert.throws(()=>loadHistory(path),/historyLarge/);}
   finally {rmSync(dir,{recursive:true,force:true});}
 });
