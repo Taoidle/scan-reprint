@@ -1,3 +1,4 @@
+/* global fetch */
 // Runs only on disposable Windows GitHub Actions runners. No print jobs are submitted.
 import { _electron as electron } from 'playwright';
 import { execFile } from 'node:child_process';
