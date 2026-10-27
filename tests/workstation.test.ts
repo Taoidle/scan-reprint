@@ -60,9 +60,9 @@ test('foreground boundary and invalid input cannot silently turn into a later pr
   foreground=false;assert.throws(()=>work.frame({...s,sequence:2,raw:'OK'}),/离开/);assert.equal(work.status().active,false);
 });
 test('uncertain delivery pauses work through outcome callback and never retries',async()=>{
-  let calls=0;let work:WorkSession;
+  let calls=0;
   const q=new PrintQueue(()=>{},async()=>{calls++;throw new UncertainError('unknown');},[],()=>work.pause('uncertain'));
-  work=new WorkSession(q,()=>true);const s=work.start(config());work.frame({...s,sequence:1,raw:'abc'});
+  const work=new WorkSession(q,()=>true);const s=work.start(config());work.frame({...s,sequence:1,raw:'abc'});
   await new Promise(resolve=>setTimeout(resolve,0));assert.equal(work.status().active,false);assert.equal(q.list()[0].status,'uncertain');assert.equal(calls,1);
 });
 test('HID framer preserves text, ignores held Enter, rejects overflow/IME/partial timeout',()=>{

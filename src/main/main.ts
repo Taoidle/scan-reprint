@@ -20,7 +20,7 @@ else void app.whenReady().then(()=>{
   session.defaultSession.setPermissionCheckHandler(()=>false);
   session.defaultSession.webRequest.onBeforeRequest((details,callback)=>callback({cancel:!['file:','data:'].some(p=>details.url.startsWith(p))}));
   const historyPath=join(app.getPath('userData'),'history.json'),config=new ConfigStore(join(app.getPath('userData'),'settings.json'));
-  let initial:Job[]=[];let damaged=false;let work:WorkSession|undefined;let epoch=0;
+  let initial:Job[]=[];let damaged=false;let epoch=0;
   try {initial=loadHistory(historyPath);} catch {damaged=true;}
   const pause=(detail?:string)=>{epoch++;return work!.pause(detail);};
   const queue=new PrintQueue(jobs=>{if(damaged)throw new Error('历史文件损坏；请备份并移走用户数据目录中的 history.json 后重启');saveHistory(historyPath,jobs);},async label=>{
@@ -32,7 +32,7 @@ else void app.whenReady().then(()=>{
   },initial,job=>{if(job.status==='failed'||job.status==='uncertain')pause('打印失败或结果不确定，已暂停接收；请核对设备。已入队任务继续处理，不自动重打。');});
   const index=join(__dirname,'index.html'),url=pathToFileURL(index).href;
   const win=new BrowserWindow({width:1440,height:1000,minWidth:850,minHeight:720,backgroundColor:'#f4f6f8',icon:join(__dirname,'icons',process.platform==='win32'?'icon.ico':'icon.png'),webPreferences:{preload:join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
-  work=new WorkSession(queue,()=>win.isFocused());
+  const work=new WorkSession(queue,()=>win.isFocused());
   win.on('blur',()=>pause('已离开应用；返回后请明确恢复扫码。'));
   win.removeMenu();win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   win.webContents.on('will-navigate',event=>event.preventDefault());
