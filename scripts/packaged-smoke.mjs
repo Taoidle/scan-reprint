@@ -8,10 +8,10 @@ const relative=process.platform==='win32'
   : `release/linux${process.arch==='arm64'?'-arm64':''}-unpacked/scan-reprint`;
 const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;delete env.SCAN_REPRINT_SMOKE;
 await mkdir('artifacts',{recursive:true});
-const app=await electron.launch({executablePath:resolve(relative),args:['--no-sandbox'],env});
+const app=await electron.launch({timeout:60000,executablePath:resolve(relative),args:['--no-sandbox'],env});
 try {
   assert.equal(await app.evaluate(({app})=>app.isPackaged),true);
-  const page=await app.firstWindow();await page.waitForSelector('textarea');
+  const page=await app.firstWindow({timeout:60000});page.setDefaultTimeout(30000);await page.waitForSelector('textarea');
   const fontsLoaded=await page.evaluate(async()=>{const faces=await document.fonts.load('700 30px "Noto Sans SC"','扫码重印');return faces.length>0&&faces.every(face=>face.status==='loaded');});
   assert.equal(fontsLoaded,true,'bundled Chinese font must load without OS font installation');
   await page.getByLabel('扫码内容',{exact:true}).fill(' 000aBc ');

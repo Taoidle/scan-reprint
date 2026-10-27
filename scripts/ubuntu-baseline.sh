@@ -11,6 +11,6 @@ docker run --rm --platform linux/arm64 -v "$PWD:/app" -v "$node_root:/opt/ci-nod
   uname -m
   ldd --version | head -n 1
   node --version
-  xvfb-run -a npm run smoke
-  xvfb-run -a node scripts/packaged-smoke.mjs
+  timeout 180s xvfb-run -a npm run smoke
+  DEBUG=pw:browser timeout 180s xvfb-run -a node scripts/packaged-smoke.mjs
 '

@@ -6,9 +6,9 @@ const require=createRequire(import.meta.url);
 const executablePath=process.env.LEGACY==='1'?require('../runtimes/legacy/node_modules/electron'):undefined;
 await mkdir('artifacts',{recursive:true});
 const env={...process.env,SCAN_REPRINT_SMOKE:'1'};delete env.ELECTRON_RUN_AS_NODE;
-const app=await electron.launch({executablePath,args:['--no-sandbox','.'],env});
+const app=await electron.launch({timeout:60000,executablePath,args:['--no-sandbox','.'],env});
 try {
-  const page=await app.firstWindow();await page.waitForSelector('textarea');
+  const page=await app.firstWindow({timeout:60000});page.setDefaultTimeout(30000);await page.waitForSelector('textarea');
   const fontsLoaded=await page.evaluate(async()=>{const faces=await document.fonts.load('700 30px "Noto Sans SC"','扫码重印');return faces.length>0&&faces.every(face=>face.status==='loaded');});
   assert.equal(fontsLoaded,true,'bundled Chinese font must load without OS font installation');
   await page.setViewportSize({width:1440,height:1000});
