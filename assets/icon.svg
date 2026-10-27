@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <title>Scan Reprint — scan frame and return arrow</title>
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="#14203A"/>
+  <path d="M52 92V58h34M170 58h34v34M52 164v34h30" stroke="#41C8BD" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M82 90v62M105 90v62M133 90v62M157 90v62M177 90v44" stroke="#FFFFFF" stroke-width="10"/>
+  <path d="M204 157v17c0 23-15 37-39 37h-45" stroke="#41C8BD" stroke-width="14" stroke-linecap="round"/>
+  <path d="m137 193-20 18 20 18" stroke="#41C8BD" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

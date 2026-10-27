@@ -22,3 +22,5 @@ Legacy CI runtime 独立锁定于 `runtimes/legacy/package-lock.json`，避免�
 码下 ASCII 文字使用内嵌的 public-domain font8x8 位图字体，以整数像素缩放输出，避免矩阵码编码器忽略 includetext 或不同打印机字体替换；来源和源文件 SHA256 见 FONT-LICENSE.txt。
 
 界面内嵌 @fontsource/noto-sans-sc 5.3.1 的 400/700 字重，OFL-1.1 授权随包放在 dist/font-OFL.txt。仅复制 CSS 引用的字体到本地资源，运行时不访问字体 CDN。源码与打包 smoke 均断言中文字体实际加载成功。
+
+图标生成使用精确锁定的 @resvg/resvg-wasm 2.6.2（MIT），仅 Actions 构建工具，不进入应用运行依赖。SVG 无外部资源或字体；PNG/ICO 用该 WASM 渲染与现有 pngjs 生成，避免增加应用原生模块。

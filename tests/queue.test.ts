@@ -9,7 +9,7 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,10));
 test('serial queue accepts new jobs while sending and rejects duplicates',async()=>{
   const gates:(()=>void)[]=[];const sent:string[]=[];
   const q=new PrintQueue(()=>{},l=>new Promise<void>(resolve=>{sent.push(l.content);gates.push(resolve);}));
-  const first=q.add(label());assert.throws(()=>q.add(label()),/重复/);q.add(label('other'));
+  const first=q.add(label(),false,5000);assert.throws(()=>q.add(label(),false,5000),/重复/);q.add(label('other'));
   assert.deepEqual(sent,['000abc']);gates.shift()!();await tick();assert.deepEqual(sent,['000abc','other']);gates.shift()!();await tick();
   assert.ok(q.list().every(j=>j.status==='submitted'));q.reprint(first.id);assert.equal(sent.length,3);gates.shift()!();await tick();
 });

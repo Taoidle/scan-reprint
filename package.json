@@ -1,6 +1,6 @@
 {
   "name": "scan-reprint",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "扫码重印桌面工具",
   "author": "Taoidle",
@@ -35,6 +35,7 @@
     "typescript": "5.8.2",
     "typescript-eslint": "8.26.0",
     "@zxing/library": "0.21.3",
-    "@fontsource/noto-sans-sc": "5.3.1"
+    "@fontsource/noto-sans-sc": "5.3.1",
+    "@resvg/resvg-wasm": "2.6.2"
   }
 }

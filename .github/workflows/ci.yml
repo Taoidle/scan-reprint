@@ -31,6 +31,7 @@ jobs:
       - run: npm test
       - run: npm audit --audit-level=high
       - run: npm run build
+      - run: node scripts/check-icons.mjs
       - name: Real Electron UI smoke on Ubuntu 22.04
         run: xvfb-run -a npm run smoke
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -80,6 +81,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - run: node scripts/check-icons.mjs
       - name: Select legacy runtime for real UI smoke
         if: matrix.legacy == '1'
         run: npm ci --prefix runtimes/legacy
@@ -102,6 +104,7 @@ jobs:
       - name: Ubuntu ARM64 22.04 source and packaged runtime baseline smoke
         if: matrix.arch == 'arm64'
         run: bash scripts/ubuntu-baseline.sh
+      - run: node scripts/check-package-icons.mjs
       - name: SHA256 checksums
         shell: bash
         run: node scripts/checksums.mjs

@@ -1,3 +1,4 @@
+import './build-icons.mjs';
 import { build } from 'esbuild';
 import { mkdir, copyFile, readFile, writeFile } from 'node:fs/promises';
 await mkdir('dist', {recursive:true});
