@@ -27,12 +27,14 @@ const installer=resolve('release',(await readdir('release')).find(f=>f.endsWith(
 await exec(installer,['/S','/currentuser','/APP_LANG=en'],{timeout:120000});
 const installed=join(folder,'YOVAL Scan Reprint.exe');await access(installed);
 assert.equal(await readFile(join(profile,'installer-language.txt'),'utf8'),'en');
-let app;
+let app;let lastPage;
 const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;delete env.SCAN_REPRINT_SMOKE;
 async function launch(language){
-  app=await electron.launch({timeout:60000,executablePath:installed,args:[],env});const page=await app.firstWindow({timeout:60000});page.setDefaultTimeout(30000);
-  await page.getByRole('heading',{name:'YOVAL Scan Reprint',exact:true}).waitFor();await page.getByRole('button',{name:language==='en'?'Start scanning':'开始扫码',exact:true}).waitFor();
-  assert.equal(await page.locator('html').getAttribute('lang'),language);assert.equal(await page.getByRole('dialog').count(),0);assert.equal(await page.title(),'YOVAL Scan Reprint');
+  app=await electron.launch({timeout:60000,executablePath:installed,args:[],env});const page=await app.firstWindow({timeout:60000});lastPage=page;page.setDefaultTimeout(30000);
+  await page.getByRole('heading',{name:'YOVAL Scan Reprint',exact:true}).waitFor();
+  const expected=language==='auto'?await app.evaluate(({app})=>/^en([-_]|$)/i.test(app.getLocale())?'en':'zh-CN'):language;
+  await page.getByRole('button',{name:expected==='en'?'Start scanning':'开始扫码',exact:true}).waitFor();
+  assert.equal(await page.locator('html').getAttribute('lang'),expected);assert.equal(await page.getByRole('dialog').count(),0);assert.equal(await page.title(),'YOVAL Scan Reprint');
   assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);
   assert.equal(await page.evaluate(async()=>(await window.scan.history())[0].label.raw),' 000aBc ');
   assert.equal(await page.evaluate(async()=>(await window.scan.config()).config.settings.printer),'Existing Printer 01');return page;
@@ -48,6 +50,23 @@ try{
   await exec(uninstaller,['/S','/currentuser',`_?=${folder}`],{timeout:120000});
   assert.equal(await readFile(join(profile,'settings.json'),'utf8'),config);assert.equal(await readFile(join(profile,'history.json'),'utf8'),history);assert.equal(JSON.parse(await readFile(join(profile,'language.json'),'utf8')).preference,'zh-CN');
   await assert.rejects(access(installed));
-  await writeFile('artifacts/installer-verification.json',JSON.stringify({channel,oldVersion:'0.2.0',installerHint:'en',upgradePreference:'zh-CN',configurationAndHistoryPreserved:true,uninstallPreservedUserData:true,metadata:info,interactiveDialogNotAutomated:true},null,2));
+  // Disposable CI profiles: reset only the language choice to exercise each installer hint.
+  for(const preference of ['zh-CN','auto']){
+    await rm(join(profile,'language.json'),{force:true});
+    await exec(installer,['/S','/currentuser',`/APP_LANG=${preference}`,`/D=${folder}`],{timeout:120000});
+    assert.equal(await readFile(join(profile,'installer-language.txt'),'utf8'),preference);
+    page=await launch(preference);assert.equal((await page.evaluate(()=>window.scan.language())).preference,preference);await capture(page,`artifacts/installed-${preference}.png`);await app.close();app=null;
+    await exec(uninstaller,['/S','/currentuser',`_?=${folder}`],{timeout:120000});await assert.rejects(access(installed));
+    assert.equal(await readFile(join(profile,'settings.json'),'utf8'),config);assert.equal(await readFile(join(profile,'history.json'),'utf8'),history);
+  }
+  await assert.rejects(exec(installer,['/S','/currentuser','/APP_LANG=invalid'],{timeout:120000}),error=>error.code===2);
+  await assert.rejects(access(installed));assert.equal(JSON.parse(await readFile(join(profile,'language.json'),'utf8')).preference,'auto');
+  await writeFile('artifacts/installer-verification.json',JSON.stringify({channel,oldVersion:'0.2.0',installerChoices:['en','zh-CN','auto'],invalidChoiceExitCode:2,installerHint:'en',upgradePreference:'zh-CN',configurationAndHistoryPreserved:true,uninstallPreservedUserData:true,metadata:info,interactiveDialogNotAutomated:true},null,2));
   console.log('Actual v0.2.0 upgrade, language handoff, preference priority, executable/ARP branding and uninstall preservation passed');
+}catch(error){
+  if(app){
+    const diagnostics={paths:await app.evaluate(({app})=>({userData:app.getPath('userData'),appPath:app.getAppPath()})),language:await lastPage.evaluate(()=>window.scan.language()).catch(e=>String(e)),body:await lastPage.locator('body').innerText()};
+    console.error(JSON.stringify(diagnostics));await writeFile('artifacts/installed-failure.json',JSON.stringify(diagnostics,null,2));await capture(lastPage,'artifacts/installed-failure.png');
+  }
+  throw error;
 }finally{if(app)await app.close();}

@@ -8,6 +8,7 @@ import { LanguageStore, parsePreference } from '../src/main/language';
 import { parseHistory } from '../src/main/storage';
 import { defaults } from '../src/shared/model';
 import { validate } from '../src/shared/validate';
+import { UncertainError } from '../src/main/network';
 import { randomUUID } from 'node:crypto';
 test('auto matches Chinese and English, other and missing locales fall back to Chinese',()=>{
   for(const locale of ['en-US','en_GB','EN-au'])assert.equal(resolveLocale('auto',locale),'en');
@@ -20,6 +21,7 @@ test('catalog keys and interpolation placeholders match exactly, messages surviv
   for(const key of Object.keys(catalogs.en) as (keyof typeof catalogs.en)[]){assert.ok(catalogs.en[key]);assert.deepEqual(catalogs.en[key].match(/\{\w+\}/g)?.sort(),catalogs['zh-CN'][key].match(/\{\w+\}/g)?.sort());}
   const message=msg('duplicateBlocked',{ms:800});assert.deepEqual(errorMessage(new Error("Error invoking remote method: "+appError(message).message)),message);
   assert.match(translate('en',message),/800 ms/);assert.match(translate('zh-CN',message),/重复扫描/);
+  assert.deepEqual(errorMessage(new UncertainError(msg('networkTimeout'))),msg('networkTimeout'));assert.equal(translate('en',errorMessage(new UncertainError(msg('networkTimeout')))),'Network printing timed out.');
   assert.throws(()=>parseMessage({code:'<script>'}));assert.throws(()=>parseMessage({code:'external',params:{reason:{raw:'secret'}}}));
 });
 test('first run, installer handoff, reopen and explicit preferences across upgrades are per-user',()=>{

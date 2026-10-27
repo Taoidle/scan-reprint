@@ -5,7 +5,7 @@ export function sendNetwork(host:string,port:number,data:Buffer,timeout=10000):P
   return new Promise((resolve,reject)=>{
     let started=false,settled=false;
     const socket=createConnection({host,port});
-    const fail=(error:Error)=>{if(settled)return;settled=true;socket.destroy();reject(started?new UncertainError(msg('networkUncertain',{reason:error.message.startsWith('YOVAL_MESSAGE:')?errorMessage(error).code:error.message.slice(0,2048)})):error);};
+    const fail=(error:Error)=>{if(settled)return;settled=true;socket.destroy();reject(started?new UncertainError(errorMessage(error)):error);};
     socket.setTimeout(timeout,()=>fail(appError(msg('networkTimeout'))));
     socket.on('error',fail);
     socket.on('close',()=>{if(!settled)fail(appError(msg('connectionClosed')));});
