@@ -11,7 +11,7 @@ try{
   assert.equal(await app.evaluate(({app})=>app.isPackaged),true);
   const page=await app.firstWindow({timeout:60000});page.setDefaultTimeout(30000);await page.getByRole('button',{name:'开始扫码',exact:true}).waitFor();
   assert.equal(await page.evaluate(async()=>(await document.fonts.load('700 30px "Noto Sans SC"','扫码重印')).length>0),true);
-  const icon=await app.evaluate(async({app,nativeImage})=>{const {join}=await import('node:path');const path=join(app.getAppPath(),'dist/icons/icon.png');const image=nativeImage.createFromPath(path);return {empty:image.isEmpty(),size:image.getSize()};});
+  const icon=await app.evaluate(({app,nativeImage})=>{const path=app.getAppPath()+'/dist/icons/icon.png';const image=nativeImage.createFromPath(path);return {empty:image.isEmpty(),size:image.getSize()};});
   assert.equal(icon.empty,false);assert.deepEqual(icon.size,{width:256,height:256});
   assert.equal(await page.getByRole('img',{name:'扫码重印应用图标',exact:true}).evaluate(img=>img.complete&&img.naturalWidth>0),true);
   if(process.platform==='win32')assert.ok((await readFile(relative)).includes(await readFile('dist/icons/icon.png')),'custom PNG icon must be embedded in the Windows executable resource');
