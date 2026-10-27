@@ -2,7 +2,7 @@
 
 中文 Electron 桌面标签重印工具。面向 **USB 键盘模式扫码枪**，也可手工输入模拟。按照扫描得到的**内容与指定码制**重新生成标签，不复制原标签图像、排版或私有编码。
 
-> 当前实现尚待 GitHub Actions 实际验证和实机验收。此仓库不把编写测试或配置工作流等同于测试通过。详见 [验证状态](docs/VERIFICATION.md)。
+> [四目标自动化验证已通过](https://github.com/Taoidle/scan-reprint/actions/runs/40477025441)，安装包由 GitHub Actions 生成，开发交付保留在 [draft PR #1](https://github.com/Taoidle/scan-reprint/pull/1)。真实扫码枪、打印机和 Win7 实机尚未验收；详见 [验证证据与限制](docs/VERIFICATION.md)。
 
 ## 支持范围
 
@@ -62,13 +62,13 @@
 
 ## 开发与 CI
 
-依照项目要求，**测试与构建全部通过 GitHub Actions**；本机仅编辑、生成不执行脚本的 npm 锁文件与 Git 操作。请在开发分支推送，进入 Actions 的 “Verify and package”。
+依照项目要求，**测试与构建全部通过 GitHub Actions**；本机仅编辑、生成不执行脚本的 npm 锁文件与 Git 操作。开发分支建立 PR 后，每次推送会运行 Actions 的 “Verify and package”；也支持手动触发。
 
-工作流先运行 lint、TypeScript 检查、unit（含 ZXing 像素解码回环）、生产依赖审计、真实 Electron UI smoke，然后构建四个目标。四目标另启动打包后的生产可执行文件检查预览和隔离。Windows legacy smoke 通过独立锁文件安装 22.3.27；现代使用 44.9.3。ARM64 在 Ubuntu 22.04 容器启动真实 Electron，检查最低 glibc/系统库兼容。CI smoke 的虚拟系统打印机仅在 **未打包且 `SCAN_REPRINT_SMOKE=1`** 时启用；安装包始终使用真实打印实现。
+工作流先运行 lint、TypeScript 检查、unit（含 ZXing 像素解码回环）、完整根依赖树审计、真实 Electron UI smoke，然后构建四个目标。四目标另启动打包后的生产可执行文件检查预览和隔离。Windows legacy smoke 通过独立锁文件安装 22.3.27；现代使用 44.9.3。ARM64 在 Ubuntu 22.04 容器启动真实 Electron，检查最低 glibc/系统库兼容。CI smoke 的虚拟系统打印机仅在 **未打包且 `SCAN_REPRINT_SMOKE=1`** 时启用；安装包始终使用真实打印实现。
 
 成功 run 的 Artifacts 中下载 `scan-reprint-windows-legacy-x64`、`scan-reprint-windows-modern-x64`、`scan-reprint-ubuntu-amd64`、`scan-reprint-ubuntu-arm64`，包含安装文件及 `SHA256SUMS.txt`；界面截图作为独立 smoke artifacts 保存。保留期 30 天，不发布 release。需登录 GitHub 下载 artifact。工作流仅有 contents:read 权限，无自动提交、发布或合并权限。
 
-应用主进程、preload、渲染层分离，启用 contextIsolation、sandbox、CSP、禁用 Node integration、拒绝非主窗口/子帧 IPC，阻止导航、新窗口、远程请求与权限请求。全部脚本、样式和字体回退为本地资源。生产代码编译目标 Node16/Chromium108，避免现代语法破坏 legacy 版。
+应用主进程、preload、渲染层分离，启用 contextIsolation、sandbox、CSP、禁用 Node integration、拒绝非主窗口/子帧 IPC，阻止导航、新窗口、远程请求与权限请求。全部脚本、样式和内嵌中文字体均为本地资源。生产代码编译目标 Node16/Chromium108，避免现代语法破坏 legacy 版。
 
 ## 参考与验收
 

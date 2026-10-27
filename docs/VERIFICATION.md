@@ -1,57 +1,47 @@
 # 验证与设计记录
 
-## 实际状态
+## 实际验证
 
-- 已克隆公开空仓库，建立本地 README 基线并创建开发分支。
-- 未在本机执行测试、构建或应用启动；遵守仅 GitHub Actions 验证要求。
-- **实际 Actions 验证进行中，尚无通过记录。** 远端已建立 main 基线，本地实现已整合，使用 GitHub 连接器提交开发分支。
-- 未使用真实扫码枪、打印机或 Win7 机器验收。
+全部测试、应用启动和打包均在 GitHub Actions 执行，本机仅编辑、审阅输出和执行 Git 操作。开发入口为 [draft PR #1](https://github.com/Taoidle/scan-reprint/pull/1)，最终提交应以该 PR 的最新绿色检查与对应 artifact 为准。
 
-## 设计依据
+[完整通过的运行 #9](https://github.com/Taoidle/scan-reprint/actions/runs/40477025441)，提交 `de463c025b18a373cbf5c1403add619b48173d4a`：lint、strict TypeScript、25 项单元测试（25 pass / 0 fail）、完整根依赖树审计（0 vulnerabilities）、Ubuntu 22.04 真实 Electron UI smoke，以及以下四目标全部通过。后续仅文档提交仍运行同样完整矩阵；请下载与目标提交一致的 artifact。
 
-使用 frontend-app-builder 与 imagegen 技能生成完整工作台概念；参考图位于 `generated_images/exec-cf7ca9ae-160d-4414-b6a9-32d00b9a6f0a.png`，已通过 view_image 检查。概念原图 1505×1045，应用首选窗口 1440×1000。任务允许自主设计，不需要额外审批。
+| 目标 | 实际 CI 证据 | 安装产物 |
+|---|---|---|
+| Windows legacy x64 | Windows Server 2022；Electron 22.3.27 源码和生产程序 smoke | NSIS exe |
+| Windows modern x64 | Windows Server 2022；Electron 44.9.3 源码和生产程序 smoke | NSIS exe |
+| Ubuntu amd64 | Ubuntu 22.04；源码和生产程序 smoke | deb + AppImage |
+| Ubuntu arm64 | 原生 ARM64 runner 打包；Ubuntu 22.04 ARM64 容器内源码和生产程序 smoke；日志 aarch64 / glibc 2.35 | deb + AppImage |
 
-设计库存：标题“扫码重印 / Scan Reprint”；左侧扫码输入、保留文本提示、码制/AIM、尺寸/DPI/份数/文字、输出/打印机/自动打印；右侧位图预览、确认打印、重新聚焦扫码；全宽打印记录表；底部提交语义提示。所有功能控件为真实 DOM，标签为实际编码 PNG，概念中的 QR 不作为生产资产。
+ARM64 前两轮出现等待，在后续提交到达时取消，未计为通过。为启动、窗口出现和整段检查加入明确超时及启动诊断后，运行 #9 在保留全部断言的情况下完成并正常退出；旧等待的根因未从已取消日志确定。保留超时和诊断，以便未来出现同类问题时使 CI 明确失败并提供证据。
 
-Tokens：背景 #f4f6f8，白色面板，文字 #14203a，辅助 #69758c，边框 #dce3eb，主按钮 #087e80；8 px 圆角，18–24 px 布局间距；本地 Segoe UI / Microsoft YaHei / Noto Sans CJK SC 字体回退。h1 30 px、h2 21 px、正文/控件 15 px、辅助 13 px。无装饰图标、渐变或远程字体。
+## 覆盖与边界
 
-组件：App 组合状态与输入；SettingsPanel 打印参数；History 历史表；共享模型；主进程校验、位图、spooler、socket、队列模块分离。850 px 最小窗口，窄宽度 CSS 单列作为额外回退。
+- 输入：前导零、大小写、首尾空格保真；AIM allowlist；拒绝 GS1、控制符和无效 Unicode；EAN 校验；尺寸、份数、IP、端口边界。
+- 图形与协议：QR（含中文/emoji）、Code128、EAN13、Data Matrix 的实际 PNG 经独立 ZXing 解码；静区/白边/码下文字；ZPL 十六进制、TSPL 定长二进制与白色位极性；扫描内容不能注入打印指令。
+- 打印提交：mock TCP 接收精确字节、连接拒绝、连接后阻塞超时；mock spooler 成功、回调失败、抛错、准备超时和提交超时。
+- 队列与数据：串行提交、提交中新任务、重复保护、明确重打、不可变快照；发送前保存失败、发送后保存失败、重启中断；损坏、矛盾、重复和超限历史拒绝。
+- 源码 Electron：隔离验证、预览、虚拟 spooler 提交、重复保护、重打确认、自动模式、URL 不导航、1025 字符不截断、850px 无横向溢出、中文本地字体加载。
+- 生产打包程序：实际启动可执行文件，确认 `app.isPackaged`、preload 隔离、精确保留输入、条码预览和内嵌中文字体；不启用虚拟打印机。
+- 产物：四个目标共六个安装文件，各目标附 `SHA256SUMS.txt`。源码 smoke 的虚拟打印 seam 只在未打包且显式设置环境变量时存在，生产应用始终使用真实打印路径。
 
-## 待执行的视觉一致性核对
+尚未完成：真实 USB 扫码枪、实际系统驱动出纸、ZPL/TSPL 实机、断纸/掉电、毫米尺寸与可扫描性校准、真实 Win7 SP1 x64、实体 Ubuntu ARM64 设备、安装/卸载完整生命周期。CI 启动的是打包目录中的生产可执行文件，不等同于运行每个安装器。Linux CI 使用 Xvfb 与 `--no-sandbox` 解决 runner 权限限制；实际桌面沙箱/显示服务仍需安装验收。无签名证书；Win7 Electron 22 已 EOL。提交成功不代表物理出纸。
 
-| 比较点 | 概念 | 实现意图 | 实际渲染证据 |
-|---|---|---|---|
-| 信息结构 | 双栏工作台 + 底部记录 | 已照此实现 | 等待 CI workbench.png |
-| 背景/主色 | 冷浅灰、白、teal | 同色 tokens | 等待 CI |
-| 字体层级 | 强标题、明确标签、小提示 | 明确控件字号与本地字体 | 等待 CI |
-| 容器/间距 | 细边框、8px 圆角、开放预览 | 相同结构和比例 | 等待 CI |
-| 标签资产 | 预览纸张 + QR | 实际打印 PNG，无概念静态图替代 | 等待 CI |
-| 窄窗口 | 未给出 | 同视觉系统，避免横向溢出 | 等待 compact.png |
+## 设计与视觉检查
 
-不能在未看到 CI 渲染前宣称已达到像素一致或视觉验收通过。实际 QA 采用 Actions 内 Playwright Electron，因为用户禁止本机启动测试/构建，不能用本机 Browser/IAB 替代。CI 截图下载后须用 view_image 与概念直接对照。
+使用 frontend-app-builder 与 imagegen 生成工作台概念，参考图为 `generated_images/exec-cf7ca9ae-160d-4414-b6a9-32d00b9a6f0a.png`（1505×1045）。实际检查采用 Actions Playwright Electron 截图，下载后逐张查看，未在本机启动应用。运行 #8 的 `ui-evidence-modern` 包含 startup、workbench、concept-size、history、compact；`smoke-ubuntu-amd64` 包含生产应用 packaged 截图。
 
-有意偏离概念：默认空内容、无打印机选择、自动打印关闭（避免误打）；增加 AIM 配置、IP/端口、队列状态、错误消息、重打确认等功能必需 UI；初始预览为空标签，不展示虚构已扫描条码；底部补充内容重建边界。主按钮使用纯色。首屏文案差异均来自实际操作与安全状态，不增加营销说明。
+| 比较点 | 实际观察 |
+|---|---|
+| 信息结构 | 与概念保持左侧输入/设置、右侧预览/操作、底部全宽记录表 |
+| 色彩 | 冷浅灰背景、白面板、深蓝文字、teal 主按钮保持一致 |
+| 字体层级 | 30px 标题、21px 面板标题、15px 控件、13px 提示；内嵌 Noto Sans SC 400/700 修复干净 Ubuntu 中文缺字 |
+| 容器与间距 | 细边框、8px 圆角、18–24px 间距；预览纸张控制在 340px 内；操作与字段不重叠 |
+| 标签资产 | 显示实际编码黑白 PNG 和毫米/DPI 信息；像素字体属于热敏标签输出，不使用概念图替代实际条码 |
+| 窄窗口 | 850px 截图字段和记录可读、无横向溢出；纵向滚动保留全部操作 |
 
-## CI 覆盖
+视觉检查已修复码制标签换行、预览纸张比例和系统缺中文字体的问题。保持概念的信息层级与视觉系统，不声称像素级克隆。与概念有意不同：启动时空内容、未选择打印机、自动打印关闭；加入真实 AIM 配置、IP/端口、错误消息、提交状态和重打确认；码下文字为明确支持范围内的 ASCII 像素文字。
 
-- lint、strict TypeScript、生产依赖 audit。
-- 保留文本、AIM allowlist、GS1/控制符/无效 Unicode 拒绝、EAN 校验、尺寸/份数/IP/端口边界。
-- QR/Code128/EAN13/Data Matrix 实际位图由独立 ZXing 解码；ZPL 十六进制与 TSPL 定长二进制/白色极性断言。
-- 本地 mock TCP server 接收精确字节；mock spooler 成功、失败、抛错、超时。
-- 队列串行、提交中新任务、去重、明确重打、持久化失败、重启中断、不可变快照。
-- Electron UI：隔离验证、输入/预览、系统 seam 提交、重复保护、重打确认、自动打印、URL 不导航、850px 布局，保存截图。
-- 四目标安装包与 SHA256；Windows 两个 runtime smoke、Ubuntu22 amd64 smoke、ARM64 Ubuntu22 容器 smoke。
+## 依赖与复现
 
-## 静态审查修复（随后交由 Actions 验证）
-
-- 移除 textarea maxlength，避免扫描 >1024 字符被浏览器截断后误印；主进程仍拒绝超限完整输入，增加 UI 验证用例。
-- 提交时先捕获并清空本次输入，下一条输入不再被前一次异步完成清除；预览绑定请求快照，错误分开显示。
-- 重打确认改用原生 modal dialog，隔离后台焦点和自动打印快捷键，Escape 可取消。
-- 历史文件 4 MiB 上限、ID/时间/状态/标签一致性校验；只保留已知字段；临时文件 fsync 后才 rename，成功后才允许提交。新增存储测试。
-- 系统打印准备操作设置超时，限定只打印第一页以免毫米换算溢出产生额外空白页；新增准备超时与位图白边/padding 用例。
-- Legacy Electron 使用独立 manifest + 锁文件 `runtimes/legacy/`，CI npm ci 安装，不再临时无锁替换依赖。
-- 四目标均加入生产打包可执行文件 smoke；ARM64 的源码与打包应用均在 Ubuntu22.04 容器启动；检查每目标安装文件类型齐全。
-- Actions 固定到已核对的 commit SHA，checkout 不持久化 Git 凭据；Ubuntu22 容器复用 setup-node 校验后的原生 ARM64 Node 分发，避免重复下载。
-- 只读检查确认当前 PATH 及 `/opt/homebrew/bin`、`/usr/local/bin`、`/usr/bin` 未发现 gh。恢复 GitHub App 授权也可继续远端工作，不要求必须在 Mac 登录。
-
-打包后 amd64 截图发现干净系统缺少中文字体，已改为随包嵌入 OFL 中文字体，并增加源程序/打包程序的字体加载断言。另补网络拒绝/连接后阻塞与提交后落盘失败的测试。
+精确版本与锁文件提交到仓库，CI 使用 `npm ci`。Legacy runtime 有独立锁文件；现代构建工具使用固定 Node 22.23.3。Actions 固定 commit SHA，checkout 不持久化 Git 凭据。现代和 legacy 的审计 JSON 随 smoke artifacts 保存；审计是当次数据库结果，不能消除旧 Electron 已终止维护的风险。详见 [依赖说明](DEPENDENCIES.md) 与 [实机验收清单](ACCEPTANCE.md)。
