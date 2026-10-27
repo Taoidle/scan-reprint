@@ -1,3 +1,4 @@
+import { capture } from './capture.mjs';
 import { _electron as electron } from 'playwright';
 import { mkdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -16,5 +17,5 @@ try{
   assert.equal(await page.getByRole('img',{name:'扫码重印应用图标',exact:true}).evaluate(img=>img.complete&&img.naturalWidth>0),true);
   if(process.platform==='win32')assert.ok((await readFile(relative)).includes(await readFile('dist/icons/icon.png')),'custom PNG icon must be embedded in the Windows executable resource');
   await page.getByRole('button',{name:'手工测试',exact:true}).click();await page.getByLabel('测试内容',{exact:true}).fill(' 000aBc ');await page.getByRole('img',{name:/标签预览/}).waitFor();assert.equal(await page.getByLabel('测试内容',{exact:true}).inputValue(),' 000aBc ');assert.equal(await page.evaluate(()=>typeof window.require),'undefined');
-  await page.screenshot({path:'artifacts/packaged.png',fullPage:true});console.log('Packaged app: production entry, exact preview, local fonts, bundled SVG/PNG and Windows executable icon verified');
+  await capture(page,'artifacts/packaged.png');console.log('Packaged app: production entry, exact preview, local fonts, bundled SVG/PNG and Windows executable icon verified');
 }finally{await app.close();}
