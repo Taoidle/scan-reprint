@@ -7,7 +7,7 @@ module.exports = {
   directories: {output:'release'}, files:['dist/**/*','package.json'],
   asar:true, npmRebuild:false,
   artifactName: `scan-reprint-\${version}-${legacy ? 'legacy' : 'modern'}-\${os}-\${arch}.\${ext}`,
-  win:{target:[{target:'nsis',arch:['x64']}],icon:'build/icon.ico',signAndEditExecutable:true,publisherName:'广州铱川创新科技有限公司'},
+  win:{target:[{target:'nsis',arch:['x64']}],icon:'build/icon.ico',signAndEditExecutable:true},
   nsis:{installerIcon:'build/icon.ico',uninstallerIcon:'build/icon.ico',include:'installer/language.nsh',installerLanguages:['zh_CN','en_US'],language:'2052',displayLanguageSelector:false,shortcutName:'YOVAL Scan Reprint',uninstallDisplayName:'YOVAL Scan Reprint',oneClick:false,perMachine:false,allowToChangeInstallationDirectory:true},
   linux:{icon:'build/icons',target:['deb','AppImage'],category:'Utility',maintainer:'广州铱川创新科技有限公司 <me@mail.taoidle.com>',
     executableName:'scan-reprint'},

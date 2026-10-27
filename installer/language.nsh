@@ -2,13 +2,13 @@
 ; Only enum values reach a per-user hint; existing language.json always wins.
 !include "nsDialogs.nsh"
 !include "FileFunc.nsh"
+!ifndef BUILD_UNINSTALLER
 Var YovalLanguage
 Var YovalDialog
 Var YovalAuto
 Var YovalChinese
 Var YovalEnglish
 
-!ifndef BUILD_UNINSTALLER
 Function YovalApplyLanguage
   ${If} $YovalLanguage == "en"
     StrCpy $LANGUAGE 1033
