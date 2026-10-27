@@ -1,0 +1,40 @@
+{
+  "name": "scan-reprint",
+  "version": "0.1.0",
+  "private": true,
+  "description": "扫码重印桌面工具",
+  "author": "Taoidle",
+  "license": "MIT",
+  "main": "dist/main.cjs",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src tests scripts",
+    "test": "tsx --test tests/*.test.ts tests/*.test.mjs",
+    "build": "node scripts/build.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "package": "electron-builder --publish never"
+  },
+  "dependencies": {
+    "bwip-js": "4.7.0",
+    "pngjs": "7.0.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/node": "22.13.10",
+    "@types/pngjs": "6.0.5",
+    "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.5",
+    "electron": "44.9.3",
+    "electron-builder": "26.18.0",
+    "esbuild": "0.25.1",
+    "eslint": "9.39.5",
+    "playwright": "1.64.1",
+    "tsx": "4.19.3",
+    "typescript": "5.8.2",
+    "typescript-eslint": "8.26.0",
+    "@zxing/library": "0.21.3",
+    "@fontsource/noto-sans-sc": "5.3.1"
+  }
+}

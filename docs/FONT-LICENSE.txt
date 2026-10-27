@@ -1,0 +1,6 @@
+font8x8 basic bitmap font
+Author: Daniel Hepper <daniel@hepper.net>
+Based on Marcel Sondaar and International Business Machines public-domain VGA fonts.
+License: Public Domain
+Source: https://github.com/dhepper/font8x8/blob/master/font8x8_basic.h
+Source SHA256: 49d8df366296b203ca3211bc0672cf2a762135bf12710735b6292756b19dffd5

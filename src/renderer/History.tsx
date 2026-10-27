@@ -1,0 +1,4 @@
+import { names, statuses, type Job } from '../shared/model';
+export function History({jobs,reprint}:{jobs:Job[];reprint:(job:Job)=>void}) {
+  return <section className="panel history"><h2>打印记录</h2><div className="table-wrap"><table><thead><tr><th>时间</th><th>内容</th><th>码制</th><th>状态</th><th>操作</th></tr></thead><tbody>{jobs.length===0?<tr><td colSpan={5} className="empty">暂无打印记录</td></tr>:[...jobs].reverse().map(job=><tr key={job.id}><td>{new Date(job.created).toLocaleTimeString('zh-CN')}</td><td className="content" title={job.label.content}>{job.label.content}</td><td>{names[job.label.symbology]}</td><td><span className={`status ${job.status}`}>{statuses[job.status]}</span><small>{job.detail}</small></td><td><button className="link" disabled={['queued','submitting'].includes(job.status)} onClick={()=>reprint(job)}>明确重打</button></td></tr>)}</tbody></table></div><p className="hint">保留最近 200 条；内容保存在本机。重打沿用该记录的标签和打印机设置。</p></section>;
+}

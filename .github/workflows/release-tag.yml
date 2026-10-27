@@ -1,0 +1,31 @@
+name: Create release tag
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'New version tag matching package.json (for example v0.1.0)'
+        required: true
+        type: string
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: create-release-tag
+  cancel-in-progress: false
+jobs:
+  tag:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Validate version and create new immutable tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          node -e 'const p=require("./package.json");if(!/^\d+\.\d+\.\d+$/.test(p.version)||process.env.RELEASE_TAG!==`v${p.version}`)throw new Error("Tag must match package version")'
+          gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$RELEASE_TAG" -f sha="$GITHUB_SHA"
+          # GITHUB_TOKEN-created tag pushes do not trigger workflows, so dispatch explicitly at that tag.
+          gh workflow run ci.yml --ref "$RELEASE_TAG"
