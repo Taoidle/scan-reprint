@@ -1,13 +1,14 @@
+import { msg, appError, errorMessage, type DisplayMessage } from '../shared/i18n';
 import { createConnection } from 'node:net';
-export class UncertainError extends Error {}
+export class UncertainError extends Error {constructor(message:DisplayMessage){super(appError(message).message);}}
 export function sendNetwork(host:string,port:number,data:Buffer,timeout=10000):Promise<void> {
   return new Promise((resolve,reject)=>{
     let started=false,settled=false;
     const socket=createConnection({host,port});
-    const fail=(error:Error)=>{if(settled)return;settled=true;socket.destroy();reject(started?new UncertainError(`数据可能已发送：${error.message}`):error);};
-    socket.setTimeout(timeout,()=>fail(new Error('网络打印超时')));
+    const fail=(error:Error)=>{if(settled)return;settled=true;socket.destroy();reject(started?new UncertainError(msg('networkUncertain',{reason:error.message.startsWith('YOVAL_MESSAGE:')?errorMessage(error).code:error.message.slice(0,2048)})):error);};
+    socket.setTimeout(timeout,()=>fail(appError(msg('networkTimeout'))));
     socket.on('error',fail);
-    socket.on('close',()=>{if(!settled)fail(new Error('连接提前关闭'));});
+    socket.on('close',()=>{if(!settled)fail(appError(msg('connectionClosed')));});
     socket.once('connect',()=>{
       started=true;
       socket.end(data,()=>{if(settled)return;settled=true;socket.destroy();resolve();});

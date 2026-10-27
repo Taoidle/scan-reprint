@@ -1,3 +1,4 @@
+import { msg, appError } from '../shared/i18n';
 import bwip from 'bwip-js/node';
 import { PNG } from 'pngjs';
 import { asciiFont } from './ascii-font';
@@ -11,7 +12,7 @@ export async function rasterize(label:Label):Promise<Raster> {
   const textHeight=s.humanText?8*textScale:0;
   const gap=s.humanText?margin:0;
   const textWidth=label.content.length*8*textScale;
-  if(s.humanText&&textWidth>width-2*margin)throw new Error('码下文字超出标签宽度；请增大标签或关闭文字');
+  if(s.humanText&&textWidth>width-2*margin)throw appError(msg('textTooWide'));
   const make=(scale:number)=>bwip.toBuffer({bcid:label.symbology,text:label.content,scale,
     ...(label.symbology==='qrcode'||label.symbology==='datamatrix'?{}:{height:12}),
     includetext:false,
@@ -19,9 +20,9 @@ export async function rasterize(label:Label):Promise<Raster> {
     paddingheight:4,backgroundcolor:'FFFFFF',parse:false,parsefnc:false});
   const base=PNG.sync.read(await make(1));
   const scale=Math.min(6,Math.floor(Math.min((width-2*margin)/base.width,(height-2*margin-textHeight-gap)/base.height)));
-  if(scale<2) throw new Error('标签容不下可读条码（至少 2 点模块）；请增大标签、减少内容或关闭文字');
+  if(scale<2) throw appError(msg('labelTooSmall'));
   const code=PNG.sync.read(await make(scale));
-  if(code.width>width-2*margin||code.height>height-2*margin-textHeight-gap) throw new Error('条码超出标签安全区域');
+  if(code.width>width-2*margin||code.height>height-2*margin-textHeight-gap) throw appError(msg('barcodeBounds'));
   const page=new PNG({width,height}); page.data.fill(255);
   const top=Math.floor((height-code.height-textHeight-gap)/2);
   PNG.bitblt(code,page,0,0,code.width,code.height,Math.floor((width-code.width)/2),top);
