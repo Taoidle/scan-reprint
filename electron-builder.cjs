@@ -9,5 +9,6 @@ module.exports = {
   win:{target:[{target:'nsis',arch:['x64']}],signAndEditExecutable:false},
   nsis:{oneClick:false,perMachine:false,allowToChangeInstallationDirectory:true},
   linux:{target:['deb','AppImage'],category:'Utility',maintainer:'Taoidle <me@mail.taoidle.com>',
-    executableName:'scan-reprint',depends:['libgtk-3-0','libnss3','libasound2','libxss1','libgbm1','libatk-bridge2.0-0','libdrm2']}
+    executableName:'scan-reprint'},
+  deb:{depends:['libgtk-3-0','libnss3','libasound2','libxss1','libgbm1','libatk-bridge2.0-0','libdrm2']}
 };

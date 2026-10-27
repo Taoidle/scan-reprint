@@ -7,7 +7,7 @@ export async function rasterize(label:Label):Promise<Raster> {
   const {settings:s}=label;
   const width=Math.round(s.width*s.dpi/25.4), height=Math.round(s.height*s.dpi/25.4);
   const margin=Math.ceil(2*s.dpi/25.4);
-  const textScale=s.dpi===300?3:2;
+  const textScale=s.dpi===300?4:3;
   const textHeight=s.humanText?8*textScale:0;
   const gap=s.humanText?margin:0;
   const textWidth=label.content.length*8*textScale;

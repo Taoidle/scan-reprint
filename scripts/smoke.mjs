@@ -17,6 +17,7 @@ try {
   await page.getByLabel('扫码内容',{exact:true}).fill('000123ABC');
   await page.getByRole('img',{name:/标签预览/}).waitFor();
   await page.screenshot({path:'artifacts/workbench.png',fullPage:true});
+  await page.setViewportSize({width:1505,height:1045});await page.screenshot({path:'artifacts/concept-size.png',fullPage:true});await page.setViewportSize({width:1440,height:1000});
   await page.getByRole('button',{name:'确认打印',exact:true}).click();
   await page.getByText('已提交 · 请核对出纸',{exact:true}).waitFor();
   await page.getByLabel('扫码内容',{exact:true}).fill('000123ABC');
@@ -26,7 +27,7 @@ try {
   await page.getByRole('button',{name:'明确重打',exact:true}).click();
   await page.getByRole('dialog').waitFor();await page.getByRole('button',{name:'确认重打',exact:true}).click();
   await page.waitForFunction(()=>document.querySelectorAll('tbody tr').length===2);
-  await page.getByLabel('扫码内容',{exact:true}).fill('https://example.com/^XZ');
+  await page.getByLabel('扫码内容',{exact:true}).fill('https://a.co/^XZ');
   await page.getByRole('img',{name:/标签预览/}).waitFor();assert.ok(page.url().startsWith('file:'));
   await page.getByLabel('自动打印',{exact:true}).check();
   await page.getByLabel('扫码内容',{exact:true}).fill('Auto0001');await page.getByLabel('扫码内容',{exact:true}).press('Enter');
