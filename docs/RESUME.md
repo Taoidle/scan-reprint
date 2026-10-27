@@ -1,6 +1,6 @@
 # 开发与验证约束
 
-测试、构建、应用 smoke 全部通过 GitHub Actions；本机只编辑与 Git 操作。开发分支 `feat/desktop-reprint`，PR 保持 draft，不合并、不发布正式 Release。
+测试、构建、应用 smoke 全部通过 GitHub Actions；本机只编辑与 Git 操作。开发分支 `feat/desktop-reprint`。用户已授权通过验证后合并 main、创建匹配 package version 的新 tag，并正式发布；不得覆盖既有 tag。正式包必须来自 tag 同 SHA 的完整 Actions 构建。
 
 依赖通过精确版本和两个 npm lockfile 固定；仅生成 lockfile 时使用 package-lock-only / ignore-scripts，不在本机执行安装脚本。
 

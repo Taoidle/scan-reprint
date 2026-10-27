@@ -9,7 +9,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests scripts",
-    "test": "tsx --test tests/*.test.ts",
+    "test": "tsx --test tests/*.test.ts tests/*.test.mjs",
     "build": "node scripts/build.mjs",
     "smoke": "node scripts/smoke.mjs",
     "package": "electron-builder --publish never"

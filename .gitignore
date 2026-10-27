@@ -3,3 +3,7 @@ dist/
 release/
 artifacts/
 *.log
+
+collected/
+publish/
+release-response.json

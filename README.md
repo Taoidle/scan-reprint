@@ -2,7 +2,7 @@
 
 中文 Electron 桌面标签重印工具。面向 **USB 键盘模式扫码枪**，也可手工输入模拟。按照扫描得到的**内容与指定码制**重新生成标签，不复制原标签图像、排版或私有编码。
 
-> [四目标自动化验证已通过](https://github.com/Taoidle/scan-reprint/actions/runs/40477025441)，安装包由 GitHub Actions 生成，开发交付保留在 [draft PR #1](https://github.com/Taoidle/scan-reprint/pull/1)。真实扫码枪、打印机和 Win7 实机尚未验收；详见 [验证证据与限制](docs/VERIFICATION.md)。
+> [四目标自动化验证已通过](https://github.com/Taoidle/scan-reprint/actions/runs/40477025441)，安装包由 GitHub Actions 生成，开发记录见 [PR #1](https://github.com/Taoidle/scan-reprint/pull/1)。真实扫码枪、打印机和 Win7 实机尚未验收；详见 [验证证据与限制](docs/VERIFICATION.md)。
 
 ## 支持范围
 
@@ -15,7 +15,7 @@
 
 本次**不含 Windows x86 / ia32**，不构建 macOS。Win7 包在 Windows Server 2022 runner 打包和运行并不证明 Win7 可用，必须在真实 Win7 SP1 x64 上验收。现代 Linux 使用 Electron 官方二进制，无应用层原生模块；ARM64 构建并非在 x64 主机假装交叉验证。AppImage 需要 FUSE 2；Ubuntu 可安装 `libfuse2`，或优先使用 `.deb`。Linux 打印需要可用 CUPS 队列与对应驱动。
 
-所有包**未签名**，Windows 可能出现未知发布者/SmartScreen 提示。只从本仓库指定 Actions run 下载并核对 SHA256；不存在自动更新或正式 Release。
+所有包**未签名**，Windows 可能出现未知发布者/SmartScreen 提示。从本仓库 [Releases](https://github.com/Taoidle/scan-reprint/releases) 或指定 Actions run 下载并核对 SHA256；不存在自动更新。
 
 ## 使用
 
@@ -66,7 +66,7 @@
 
 工作流先运行 lint、TypeScript 检查、unit（含 ZXing 像素解码回环）、完整根依赖树审计、真实 Electron UI smoke，然后构建四个目标。四目标另启动打包后的生产可执行文件检查预览和隔离。Windows legacy smoke 通过独立锁文件安装 22.3.27；现代使用 44.9.3。ARM64 在 Ubuntu 22.04 容器启动真实 Electron，检查最低 glibc/系统库兼容。CI smoke 的虚拟系统打印机仅在 **未打包且 `SCAN_REPRINT_SMOKE=1`** 时启用；安装包始终使用真实打印实现。
 
-成功 run 的 Artifacts 中下载 `scan-reprint-windows-legacy-x64`、`scan-reprint-windows-modern-x64`、`scan-reprint-ubuntu-amd64`、`scan-reprint-ubuntu-arm64`，包含安装文件及 `SHA256SUMS.txt`；界面截图作为独立 smoke artifacts 保存。保留期 30 天，不发布 release。需登录 GitHub 下载 artifact。工作流仅有 contents:read 权限，无自动提交、发布或合并权限。
+成功 run 的 Artifacts 中下载 `scan-reprint-windows-legacy-x64`、`scan-reprint-windows-modern-x64`、`scan-reprint-ubuntu-amd64`、`scan-reprint-ubuntu-arm64`，包含安装文件及 `SHA256SUMS.txt`；界面截图作为独立 smoke artifacts 保存。Actions artifact 保留期 30 天，下载需登录 GitHub；正式 Release 附件独立保存。普通验证仅使用读取权限；tag 发布 job 才拥有 contents:write，用于创建草稿、上传并验证附件后发布。
 
 应用主进程、preload、渲染层分离，启用 contextIsolation、sandbox、CSP、禁用 Node integration、拒绝非主窗口/子帧 IPC，阻止导航、新窗口、远程请求与权限请求。全部脚本、样式和内嵌中文字体均为本地资源。生产代码编译目标 Node16/Chromium108，避免现代语法破坏 legacy 版。
 
@@ -79,3 +79,9 @@
 - [Electron 22 打印 API](https://github.com/electron/electron/blob/v22.3.27/docs/api/web-contents.md)
 - [bwip-js](https://github.com/metafloor/bwip-js)
 - [TSC TSPL/TSPL2 手册](https://fs.tscprinters.com/en/dl/1/2541)
+
+## 正式发布流程
+
+版本号由 package.json 决定，tag 必须为相同的 vX.Y.Z。先通过 PR 的完整 CI（含四目标安装包组合与校验检查）再合并 main。运行 Actions 的 **Create release tag**，选择 main 并输入新 tag；已有 tag 会被 GitHub 拒绝，流程不覆盖 tag。该工作流使用短期 GITHUB_TOKEN 创建 tag，并显式 dispatch Verify and package 到这个 tag，因为 GITHUB_TOKEN 产生的普通 push 不会再次触发工作流。外部创建的 v*.*.* tag push 同样支持。
+
+正式构建从 tag 重新 checkout，执行完整验证和四目标构建，不复用 PR/main 的安装包。组合 job 只下载本次 run 的四目标 artifact，严格核对六个安装文件与校验值，生成总 SHA256SUMS.txt 和记录 commit/ref/run 的 build-info.json。发布 job 创建草稿并上传，逐一核对 GitHub 附件名称、大小和 SHA256 后才公开发布。失败时保留诊断或草稿，不自动覆盖已有 Release；修复发布需核实当前状态后处理，不能移动已有 tag。发布范围和实机限制见 docs/RELEASE_NOTES.md。
