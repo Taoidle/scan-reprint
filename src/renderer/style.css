@@ -5,3 +5,5 @@
 /* Longer English labels and the legal publisher remain readable at the minimum width. */
 .brand h1{font-size:22px;white-space:nowrap}.brand span{font-size:11px;letter-spacing:.04em}.language-panel{margin-bottom:18px;display:flex;align-items:center;gap:24px}.language-panel label{min-width:280px}.language-dialog{max-width:560px}.language-dialog select{width:100%;margin:12px 0}.language-dialog .primary{margin-top:16px}.frame-status{min-height:48px}.work-title{font-size:clamp(28px,3.2vw,42px)}
 @media(max-width:1000px){header{flex-wrap:wrap;gap:12px}.language-panel{display:block}.language-panel label{min-width:0}.local-badge{display:none}}
+
+.language-panel{padding:20px 28px}.language-panel label{display:block;font-size:13px;color:#566580}.language-panel select{margin-top:8px}.language-panel .hint{margin:0}

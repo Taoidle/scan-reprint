@@ -133,7 +133,7 @@
   "noPrinter": "No printer selected",
   "labelSpec": "Label specification",
   "scanRules": "Scan rules",
-  "copiesRule": "{count} copies / scan · {rule}",
+  "copiesRule": "Copies per scan: {count} · {rule}",
   "scannerSetup": "Scanner setup: USB keyboard mode + Enter suffix",
   "scannerHelp": "Keep the app in the foreground. No input box needs focus. Leaving the app, configuration or dialogs pauses scanning. Start again when you return. Esc pauses.",
   "testHint": "Check content, labels and destinations without a scanner. Scanner intake is paused.",

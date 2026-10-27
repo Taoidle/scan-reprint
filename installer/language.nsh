@@ -1,5 +1,6 @@
 ; Application-language preference and installer UI are distinct.
 ; Only enum values reach a per-user hint; existing language.json always wins.
+!include "MUI2.nsh"
 !include "nsDialogs.nsh"
 !include "FileFunc.nsh"
 !ifndef BUILD_UNINSTALLER
