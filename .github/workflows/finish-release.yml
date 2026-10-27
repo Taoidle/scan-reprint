@@ -1,0 +1,49 @@
+name: Finish verified draft release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing immutable version tag
+        required: true
+        type: string
+      source_run:
+        description: Original tag build run with successful verify, four packages and release-bundle
+        required: true
+        type: string
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: finish-verified-release
+  cancel-in-progress: false
+jobs:
+  finish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.tag }}
+      SOURCE_RUN: ${{ inputs.source_run }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22.23.3'
+      - name: Verify exact tag build and its six prerequisite jobs
+        run: |
+          node -e 'if(!/^v\d+\.\d+\.\d+$/.test(process.env.RELEASE_TAG)||!/^\d+$/.test(process.env.SOURCE_RUN))throw new Error("Invalid inputs")'
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN" > source-run.json
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN/jobs?per_page=100" > source-jobs.json
+          gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" > source-tag.json
+          gh run download "$SOURCE_RUN" --name release-ready --dir publish
+          node scripts/validate-release-source.mjs
+      - name: Verify existing draft attachments and publish without replacing any files or tag
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" > release-list.json
+          release_id="$(node scripts/release-id.mjs)"
+          gh api "repos/$GITHUB_REPOSITORY/releases/$release_id" > release-response.json
+          node scripts/verify-release-assets.mjs
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" -F draft=false -f make_latest=true

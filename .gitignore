@@ -7,3 +7,7 @@ artifacts/
 collected/
 publish/
 release-response.json
+release-list.json
+source-run.json
+source-tag.json
+source-jobs.json

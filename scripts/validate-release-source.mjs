@@ -1,0 +1,11 @@
+import { readFile } from 'node:fs/promises';
+const json=async path=>JSON.parse(await readFile(path,'utf8'));
+const run=await json('source-run.json'),tag=await json('source-tag.json'),jobs=await json('source-jobs.json');
+const name=process.env.RELEASE_TAG,id=process.env.SOURCE_RUN;
+if(!/^v\d+\.\d+\.\d+$/.test(name)||!/^\d+$/.test(id))throw new Error('Invalid release inputs');
+if(tag.object.type!=='commit'||run.head_sha!==tag.object.sha||String(run.id)!==id||run.head_branch!==name||run.path!=='.github/workflows/ci.yml'||run.repository.full_name!==process.env.GITHUB_REPOSITORY||!['push','workflow_dispatch'].includes(run.event))throw new Error('Source run is not a build of this exact tag');
+const required=['verify','release-bundle','packages (windows-legacy-x64, windows-2022, win, x64, 1)','packages (windows-modern-x64, windows-2022, win, x64, 0)','packages (ubuntu-amd64, ubuntu-22.04, linux, x64, 0)','packages (ubuntu-arm64, ubuntu-24.04-arm, linux, arm64, 0)'];
+for(const name of required)if(jobs.jobs.filter(j=>j.name===name&&j.conclusion==='success').length!==1)throw new Error(`Source check did not pass: ${name}`);
+const info=await json('publish/build-info.json');
+if(info.commit!==tag.object.sha||info.ref!==`refs/tags/${name}`||String(info.run)!==id||info.repository!==process.env.GITHUB_REPOSITORY||`v${info.version}`!==name)throw new Error('Downloaded provenance does not match tag/run');
+console.log(`Verified original tag build ${info.commit} / run ${id}`);

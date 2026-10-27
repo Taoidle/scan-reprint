@@ -2,7 +2,7 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 const release=JSON.parse(await readFile('release-response.json','utf8'));
 const files=(await readdir('publish')).sort();
-if(!release.draft||release.tag_name!==process.env.GITHUB_REF_NAME)throw new Error('Expected matching draft release');
+if(!release.draft||release.tag_name!==(process.env.RELEASE_TAG||process.env.GITHUB_REF_NAME))throw new Error('Expected matching draft release');
 if(JSON.stringify(release.assets.map(a=>a.name).sort())!==JSON.stringify(files))throw new Error('Release attachment inventory mismatch');
 for(const file of files) {
   const asset=release.assets.find(a=>a.name===file);

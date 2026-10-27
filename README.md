@@ -85,3 +85,5 @@
 版本号由 package.json 决定，tag 必须为相同的 vX.Y.Z。先通过 PR 的完整 CI（含四目标安装包组合与校验检查）再合并 main。运行 Actions 的 **Create release tag**，选择 main 并输入新 tag；已有 tag 会被 GitHub 拒绝，流程不覆盖 tag。该工作流使用短期 GITHUB_TOKEN 创建 tag，并显式 dispatch Verify and package 到这个 tag，因为 GITHUB_TOKEN 产生的普通 push 不会再次触发工作流。外部创建的 v*.*.* tag push 同样支持。
 
 正式构建从 tag 重新 checkout，执行完整验证和四目标构建，不复用 PR/main 的安装包。组合 job 只下载本次 run 的四目标 artifact，严格核对六个安装文件与校验值，生成总 SHA256SUMS.txt 和记录 commit/ref/run 的 build-info.json。发布 job 创建草稿并上传，逐一核对 GitHub 附件名称、大小和 SHA256 后才公开发布。失败时保留诊断或草稿，不自动覆盖已有 Release；修复发布需核实当前状态后处理，不能移动已有 tag。发布范围和实机限制见 docs/RELEASE_NOTES.md。
+
+若上传草稿后中断，不能直接重跑创建 Release 或移动 tag。`Finish verified draft release` 只允许从 main 手动运行，输入现有 tag 和原 tag 构建 run ID；它验证原 run 的 SHA/事件/工作流、四目标与基础检查成功、下载包 provenance，随后逐项校验已有草稿附件的名称/大小/SHA256，再按 Release ID 发布，不改写 tag 或附件。已公开的 Release 会拒绝再次处理。草稿不能依赖按 tag 查询接口定位，应从 release 列表获得明确 ID。
