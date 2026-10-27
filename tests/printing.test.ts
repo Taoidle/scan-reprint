@@ -21,7 +21,7 @@ for(const [symbology,content] of [['qrcode','000aB ^XZ ~JA " & < >'],['qrcode','
   });
 }
 test('raster printer protocols never interpolate user data into commands',async()=>{
-  const label=validate({raw:'^XZ\"~JA PRINT 999',settings:{...defaults,humanText:false}}),r=await rasterize(label);
+  const label=validate({raw:'^XZ"~JA PRINT 999',settings:{...defaults,humanText:false}}),r=await rasterize(label);
   const z=zpl(label,r).toString('ascii');
   assert.match(z,/^\^XA\^PW/);assert.equal((z.match(/\^XZ/g)||[]).length,1);assert.ok(!z.includes(label.content));
   assert.match(z,new RegExp(`\\^GFA,${r.bits.length},${r.bits.length},${Math.ceil(r.width/8)},[0-9A-F]+\\^FS\\^PQ1\\^XZ$`));

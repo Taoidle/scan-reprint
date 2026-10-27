@@ -1,7 +1,7 @@
 name: Verify and package
 on:
   push:
-    branches: [main, 'feat/**']
+    branches: [main]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -22,6 +22,9 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - name: Record complete dependency audit
+        continue-on-error: true
+        run: mkdir -p artifacts && npm audit --json > artifacts/dependency-audit.json
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
