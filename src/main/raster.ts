@@ -13,7 +13,7 @@ export async function rasterize(label:Label):Promise<Raster> {
   const textWidth=label.content.length*8*textScale;
   if(s.humanText&&textWidth>width-2*margin)throw new Error('码下文字超出标签宽度；请增大标签或关闭文字');
   const make=(scale:number)=>bwip.toBuffer({bcid:label.symbology,text:label.content,scale,
-    height:label.symbology==='qrcode'||label.symbology==='datamatrix'?undefined:12,
+    ...(label.symbology==='qrcode'||label.symbology==='datamatrix'?{}:{height:12}),
     includetext:false,
     paddingwidth:label.symbology==='code128'||label.symbology==='ean13'?10:4,
     paddingheight:4,backgroundcolor:'FFFFFF',parse:false,parsefnc:false});

@@ -28,7 +28,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
-      - run: npm audit --omit=dev --audit-level=high
+      - run: npm audit --audit-level=high
       - run: npm run build
       - run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
       - name: Real Electron UI smoke on Ubuntu 22.04
