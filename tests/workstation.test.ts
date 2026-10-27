@@ -74,3 +74,8 @@ test('HID framer preserves text, ignores held Enter, rejects overflow/IME/partia
   f.feed('x',false,true);assert.equal(f.feed('Enter')?.kind,'error');f.feed('A');f.reset();assert.equal(f.feed('Enter'),null);
   f.feed('A');f.feed('Backspace');assert.equal(f.feed('Enter')?.kind,'error');
 });
+test('debounce expires at its configured duration rather than a fixed five seconds',async()=>{
+  const q=new PrintQueue(()=>{},async()=>{}),work=new WorkSession(q,()=>true),c=config();c.duplicate={mode:'debounce',windowMs:100};const s=work.start(c);
+  work.frame({...s,sequence:1,raw:'expiry'});assert.throws(()=>work.frame({...s,sequence:2,raw:'expiry'}),/100 ms/);
+  await new Promise(resolve=>setTimeout(resolve,120));work.frame({...s,sequence:3,raw:'expiry'});assert.equal(q.list().length,2);
+});

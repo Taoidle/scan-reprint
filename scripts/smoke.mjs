@@ -28,7 +28,7 @@ try{
   await page.keyboard.press('Enter');await page.keyboard.press('Enter');assert.equal(await count(),3);
   await page.getByRole('img',{name:/标签预览/}).waitFor();await page.screenshot({path:'artifacts/workstation.png',fullPage:true});
   await page.getByRole('button',{name:'暂停扫码',exact:true}).click();await scan('Paused');assert.equal(await count(),3);assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);
-  await page.getByRole('button',{name:'开始扫码',exact:true}).focus();await page.keyboard.press('Enter');assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);
+  await page.getByRole('button',{name:'开始扫码',exact:true}).focus();await page.keyboard.press('Enter');await page.keyboard.press('Space');assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);
   await start();await page.keyboard.type('Partial');await page.getByRole('button',{name:'配置',exact:true}).click();assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);
   await page.getByLabel('重复码策略').selectOption('debounce');await page.getByLabel('防抖窗口 (ms)').fill('60000');await page.getByRole('button',{name:'保存配置',exact:true}).click();
   await start();await scan('Debounce');await waitCount(4);await scan('Debounce');await page.getByRole('alert').filter({hasText:'重复扫描'}).waitFor();assert.equal(await count(),4);await scan('Different');await waitCount(5);
