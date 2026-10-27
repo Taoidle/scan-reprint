@@ -1,6 +1,6 @@
 import { msg, appError, type DisplayMessage } from '../shared/i18n';
 import { app, BrowserWindow, ipcMain, session } from 'electron';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { Job } from '../shared/model';
@@ -37,8 +37,11 @@ else void app.whenReady().then(()=>{
       await systemPrint(label,raster);
     } else await sendNetwork(label.settings.host,label.settings.port,label.settings.transport==='zpl'?zpl(label,raster):tspl(label,raster));
   },initial,job=>{if(job.status==='failed'||job.status==='uncertain')pause(msg('printPaused'));});
-  const index=join(__dirname,'index.html'),url=pathToFileURL(index).href;
-  const win=new BrowserWindow({title:'YOVAL Scan Reprint',width:1440,height:1000,minWidth:850,minHeight:720,backgroundColor:'#f4f6f8',icon:join(__dirname,'icons',process.platform==='win32'?'icon.ico':'icon.png'),webPreferences:{preload:join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
+  // Resolve the physical directory before entering ASAR. Chromium canonicalizes Windows 8.3 aliases.
+  // Loading and authorizing the same canonical entry keeps strict main-frame IPC validation intact.
+  const appDirectory=app.isPackaged?join(realpathSync.native(process.resourcesPath),'app.asar','dist'):realpathSync.native(__dirname);
+  const index=join(appDirectory,'index.html'),url=pathToFileURL(index).href;
+  const win=new BrowserWindow({title:'YOVAL Scan Reprint',width:1440,height:1000,minWidth:850,minHeight:720,backgroundColor:'#f4f6f8',icon:join(appDirectory,'icons',process.platform==='win32'?'icon.ico':'icon.png'),webPreferences:{preload:join(appDirectory,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
   const work=new WorkSession(queue,()=>win.isFocused());
   win.on('blur',()=>pause(msg('blurPaused')));
   win.removeMenu();win.webContents.setWindowOpenHandler(()=>({action:'deny'}));

@@ -65,7 +65,7 @@ try{
   console.log('Actual v0.2.0 upgrade, language handoff, preference priority, executable/ARP branding and uninstall preservation passed');
 }catch(error){
   if(app){
-    const diagnostics={paths:await app.evaluate(({app})=>({userData:app.getPath('userData'),appPath:app.getAppPath()})),language:await lastPage.evaluate(()=>window.scan.language()).catch(e=>String(e)),body:await lastPage.locator('body').innerText()};
+    const diagnostics={pageUrl:lastPage.url(),paths:await app.evaluate(({app})=>({userData:app.getPath('userData'),appPath:app.getAppPath()})),language:await lastPage.evaluate(()=>window.scan.language()).catch(e=>String(e)),body:await lastPage.locator('body').innerText()};
     console.error(JSON.stringify(diagnostics));await writeFile('artifacts/installed-failure.json',JSON.stringify(diagnostics,null,2));await capture(lastPage,'artifacts/installed-failure.png');
   }
   throw error;
