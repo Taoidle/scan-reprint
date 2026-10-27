@@ -2,7 +2,7 @@
 
 中文 Electron 桌面标签重印工具。面向 **USB 键盘模式扫码枪**，也可手工输入模拟。按照扫描得到的**内容与指定码制**重新生成标签，不复制原标签图像、排版或私有编码。
 
-> 本分支为 0.2.0 开发版：新增保存配置、前台扫码工作模式和应用图标。正式发行版仍为 [v0.1.0](https://github.com/Taoidle/scan-reprint/releases/tag/v0.1.0)；本分支 CI 状态以 draft PR 为准。真实扫码枪、打印机和 Win7 实机尚未验收。
+> 当前版本 **0.2.0**：保存配置、明确开始/暂停的前台扫码工作模式和原创应用图标。安装包与发布说明见 [Releases](https://github.com/Taoidle/scan-reprint/releases)；真实扫码枪、打印机和 Win7 实机尚未验收。
 
 ## 支持范围
 
