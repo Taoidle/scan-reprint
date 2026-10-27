@@ -9,6 +9,8 @@ const env={...process.env,SCAN_REPRINT_SMOKE:'1'};delete env.ELECTRON_RUN_AS_NOD
 const app=await electron.launch({executablePath,args:['--no-sandbox','.'],env});
 try {
   const page=await app.firstWindow();await page.waitForSelector('textarea');
+  const fontsLoaded=await page.evaluate(async()=>{const faces=await document.fonts.load('700 30px "Noto Sans SC"','扫码重印');return faces.length>0&&faces.every(face=>face.status==='loaded');});
+  assert.equal(fontsLoaded,true,'bundled Chinese font must load without OS font installation');
   await page.setViewportSize({width:1440,height:1000});
   assert.equal(await page.evaluate(()=>typeof window.require),'undefined');
   assert.equal(await page.evaluate(()=>typeof window.process),'undefined');

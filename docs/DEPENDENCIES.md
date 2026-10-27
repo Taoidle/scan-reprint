@@ -20,3 +20,5 @@ Legacy CI runtime 独立锁定于 `runtimes/legacy/package-lock.json`，避免�
 首次 Actions 全依赖审计揭示旧打包工具与 Playwright 的漏洞，因此升级至 electron-builder 26.18.0、Playwright 1.64.1 和 ESLint 9.39.5，再由 CI 重新审计。Node 构建环境固定 22.23.3。
 
 码下 ASCII 文字使用内嵌的 public-domain font8x8 位图字体，以整数像素缩放输出，避免矩阵码编码器忽略 includetext 或不同打印机字体替换；来源和源文件 SHA256 见 FONT-LICENSE.txt。
+
+界面内嵌 @fontsource/noto-sans-sc 5.3.1 的 400/700 字重，OFL-1.1 授权随包放在 dist/font-OFL.txt。仅复制 CSS 引用的字体到本地资源，运行时不访问字体 CDN。源码与打包 smoke 均断言中文字体实际加载成功。

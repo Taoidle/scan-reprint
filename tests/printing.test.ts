@@ -75,3 +75,16 @@ test('QR and Data Matrix include real ASCII caption pixels',async()=>{
     assert.ok(lastBlack>p.height/2,'caption appears below the centered code');
   }
 });
+
+test('TCP refusal is definite failure and a stalled connected write is uncertain',async()=>{
+  const reserve=createServer();await new Promise<void>(r=>reserve.listen(0,'127.0.0.1',r));
+  const address=reserve.address();assert.ok(address&&typeof address==='object');
+  await new Promise<void>(r=>reserve.close(()=>r()));
+  await assert.rejects(sendNetwork('127.0.0.1',address.port,Buffer.from('x'),1000),e=>e instanceof Error&&!(e instanceof UncertainError));
+  const sockets:import('node:net').Socket[]=[];
+  const stalled=createServer(s=>{s.pause();sockets.push(s);});
+  await new Promise<void>(r=>stalled.listen(0,'127.0.0.1',r));
+  const endpoint=stalled.address();assert.ok(endpoint&&typeof endpoint==='object');
+  try {await assert.rejects(sendNetwork('127.0.0.1',endpoint.port,Buffer.alloc(16*1024*1024),100),UncertainError);}
+  finally {for(const socket of sockets)socket.destroy();await new Promise<void>(r=>stalled.close(()=>r()));}
+});

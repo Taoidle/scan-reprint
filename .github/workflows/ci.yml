@@ -30,7 +30,6 @@ jobs:
       - run: npm test
       - run: npm audit --audit-level=high
       - run: npm run build
-      - run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
       - name: Real Electron UI smoke on Ubuntu 22.04
         run: xvfb-run -a npm run smoke
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

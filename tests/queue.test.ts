@@ -26,3 +26,10 @@ test('restart never resends pending work',()=>{
 test('copies, content and settings are immutable snapshots',async()=>{
   const l=label();const q=new PrintQueue(()=>{},async()=>{});q.add(l);l.settings.copies=99;l.content='changed';await tick();assert.equal(q.list()[0].label.settings.copies,1);assert.equal(q.list()[0].label.content,'000abc');
 });
+
+test('post-submit persistence failure never becomes a retry on restart',async()=>{
+  let saved:Job[]=[];let writes=0,sends=0;
+  const q=new PrintQueue(jobs=>{if(++writes===3)throw new Error('disk full');saved=JSON.parse(JSON.stringify(jobs));},async()=>{sends++;});
+  q.add(label());await tick();assert.equal(sends,1);assert.equal(q.list()[0].status,'uncertain');assert.equal(saved[0].status,'submitting');
+  const restored=new PrintQueue(()=>{},async()=>{sends++;},saved);await tick();assert.equal(restored.list()[0].status,'uncertain');assert.equal(sends,1);
+});

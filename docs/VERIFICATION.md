@@ -51,5 +51,7 @@ Tokens：背景 #f4f6f8，白色面板，文字 #14203a，辅助 #69758c，边�
 - 系统打印准备操作设置超时，限定只打印第一页以免毫米换算溢出产生额外空白页；新增准备超时与位图白边/padding 用例。
 - Legacy Electron 使用独立 manifest + 锁文件 `runtimes/legacy/`，CI npm ci 安装，不再临时无锁替换依赖。
 - 四目标均加入生产打包可执行文件 smoke；ARM64 的源码与打包应用均在 Ubuntu22.04 容器启动；检查每目标安装文件类型齐全。
-- Actions 固定到已核对的 commit SHA，checkout 不持久化 Git 凭据；容器 Node 下载增加 SHA256 校验。
+- Actions 固定到已核对的 commit SHA，checkout 不持久化 Git 凭据；Ubuntu22 容器复用 setup-node 校验后的原生 ARM64 Node 分发，避免重复下载。
 - 只读检查确认当前 PATH 及 `/opt/homebrew/bin`、`/usr/local/bin`、`/usr/bin` 未发现 gh。恢复 GitHub App 授权也可继续远端工作，不要求必须在 Mac 登录。
+
+打包后 amd64 截图发现干净系统缺少中文字体，已改为随包嵌入 OFL 中文字体，并增加源程序/打包程序的字体加载断言。另补网络拒绝/连接后阻塞与提交后落盘失败的测试。
