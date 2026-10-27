@@ -1,49 +1,52 @@
+import { capture } from './capture.mjs';
 import { _electron as electron } from 'playwright';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, readFile, readdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-const require=createRequire(import.meta.url);
-const executablePath=process.env.LEGACY==='1'?require('../runtimes/legacy/node_modules/electron'):undefined;
+const require=createRequire(import.meta.url),executablePath=process.env.LEGACY==='1'?require('../runtimes/legacy/node_modules/electron'):undefined;
 await mkdir('artifacts',{recursive:true});
-const env={...process.env,SCAN_REPRINT_SMOKE:'1'};delete env.ELECTRON_RUN_AS_NODE;
-const app=await electron.launch({timeout:60000,executablePath,args:['--no-sandbox','.'],env});
-try {
-  const page=await app.firstWindow({timeout:60000});page.setDefaultTimeout(30000);await page.waitForSelector('textarea');
-  const fontsLoaded=await page.evaluate(async()=>{const faces=await document.fonts.load('700 30px "Noto Sans SC"','扫码重印');return faces.length>0&&faces.every(face=>face.status==='loaded');});
-  assert.equal(fontsLoaded,true,'bundled Chinese font must load without OS font installation');
-  await page.setViewportSize({width:1440,height:1000});
-  assert.equal(await page.evaluate(()=>typeof window.require),'undefined');
-  assert.equal(await page.evaluate(()=>typeof window.process),'undefined');
-  await page.screenshot({path:'artifacts/startup.png',fullPage:true});
-  await page.getByLabel('打印机',{exact:true}).selectOption('CI spooler');
-  await page.getByLabel('扫码内容',{exact:true}).fill('000123ABC');
-  await page.getByRole('img',{name:/标签预览/}).waitFor();
-  await page.screenshot({path:'artifacts/workbench.png',fullPage:true});
-  await page.setViewportSize({width:1505,height:1045});await page.screenshot({path:'artifacts/concept-size.png',fullPage:true});await page.setViewportSize({width:1440,height:1000});
-  await page.getByRole('button',{name:'确认打印',exact:true}).click();
-  await page.getByText('已提交 · 请核对出纸',{exact:true}).waitFor();
-  await page.getByLabel('扫码内容',{exact:true}).fill('000123ABC');
-  await page.getByRole('img',{name:/标签预览/}).waitFor();
-  await page.getByRole('button',{name:'确认打印',exact:true}).click();
-  await page.getByRole('alert').filter({hasText:'重复扫描'}).waitFor();
-  await page.getByRole('button',{name:'明确重打',exact:true}).click();
-  await page.getByRole('dialog').waitFor();await page.getByRole('button',{name:'确认重打',exact:true}).click();
-  await page.waitForFunction(()=>document.querySelectorAll('tbody tr').length===2);
-  await page.getByLabel('扫码内容',{exact:true}).fill('https://a.co/^XZ');
-  await page.getByRole('img',{name:/标签预览/}).waitFor();assert.ok(page.url().startsWith('file:'));
-  await page.getByLabel('自动打印',{exact:true}).check();
-  await page.getByLabel('扫码内容',{exact:true}).fill('Auto0001');await page.getByLabel('扫码内容',{exact:true}).press('Enter');
-  await page.waitForFunction(()=>document.querySelectorAll('tbody tr').length===3);
-  await page.screenshot({path:'artifacts/history.png',fullPage:true});
-  await page.setViewportSize({width:850,height:760});await page.screenshot({path:'artifacts/compact.png',fullPage:true});
-  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-  await page.getByLabel('自动打印',{exact:true}).uncheck();
-  await page.getByLabel('扫码内容',{exact:true}).fill('x'.repeat(1025));
-  assert.equal((await page.getByLabel('扫码内容',{exact:true}).inputValue()).length,1025);
-  await page.getByRole('alert').filter({hasText:'raw 格式错误'}).waitFor();
-  console.log('Electron smoke: isolation, preview, submission, duplicate protection, reprint, auto mode, URL safety, compact layout passed');
-} catch(error) {
-  const page=app.windows()[0];
-  if(page){await page.screenshot({path:'artifacts/failure.png',fullPage:true});await writeFile('artifacts/failure.html',await page.content());console.error(await page.locator('body').innerText());}
-  throw error;
-} finally {await app.close();}
+const env={...process.env,SCAN_REPRINT_SMOKE:'1',SCAN_REPRINT_SMOKE_PROFILE:`workflow-${process.pid}-${Date.now()}`};delete env.ELECTRON_RUN_AS_NODE;
+let app,page,profile;
+const launch=async()=>{app=await electron.launch({timeout:60000,executablePath,args:['--no-sandbox','.'],env});page=await app.firstWindow({timeout:60000});page.setDefaultTimeout(30000);await page.setViewportSize({width:1505,height:1045});await page.getByRole('button',{name:'开始扫码',exact:true}).waitFor();await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].focus());};
+const count=()=>page.evaluate(async()=>(await window.scan.history()).length);
+const waitCount=async n=>page.waitForFunction(async expected=>(await window.scan.history()).length===expected,n);
+const scan=async value=>{await page.keyboard.type(value);await page.keyboard.press('Enter');};
+const start=async()=>{await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].focus());await page.getByRole('button',{name:'开始扫码',exact:true}).click();await page.getByRole('heading',{name:'正在接收扫码',exact:true}).waitFor();};
+try{
+  await launch();profile=await app.evaluate(({app})=>app.getPath('userData'));
+  assert.equal(await page.getByRole('img',{name:'扫码重印应用图标',exact:true}).evaluate(img=>img.complete&&img.naturalWidth>0),true);
+  assert.equal(await page.evaluate(()=>typeof window.require),'undefined');assert.equal(await page.evaluate(()=>typeof window.process),'undefined');
+  assert.equal(await page.evaluate(async()=>(await document.fonts.load('700 30px "Noto Sans SC"','扫码重印')).length>0),true);
+  await capture(page,'artifacts/startup.png');
+  await page.getByRole('button',{name:'配置',exact:true}).click();await page.getByLabel('打印机',{exact:true}).selectOption('CI spooler');
+  await page.getByLabel('宽度 (mm)',{exact:true}).fill('60');assert.equal(await page.getByLabel('每次扫描份数',{exact:true}).inputValue(),'1');
+  await capture(page,'artifacts/configuration.png');await page.getByRole('button',{name:'保存配置',exact:true}).click();
+  await page.getByText('配置已保存；点击开始扫码后生效',{exact:true}).waitFor();await app.close();
+  await launch();assert.equal(await page.evaluate(async()=>(await window.scan.config()).config.settings.printer),'CI spooler');assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);
+  await start();await scan(' 000aBc ');await scan(' 000aBc ');await scan('Other001');await waitCount(3);
+  assert.deepEqual(await page.evaluate(async()=>(await window.scan.history()).map(j=>j.label.content)),[' 000aBc ',' 000aBc ','Other001']);
+  await page.keyboard.press('Enter');await page.keyboard.press('Enter');assert.equal(await count(),3);
+  await page.getByRole('img',{name:/标签预览/}).waitFor();await capture(page,'artifacts/workstation.png');
+  await page.getByRole('button',{name:'暂停扫码',exact:true}).focus();await scan('ControlFocus');assert.equal(await count(),3);assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);await start();
+  await page.getByRole('button',{name:'暂停扫码',exact:true}).click();await scan('Paused');assert.equal(await count(),3);assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);
+  await page.getByRole('button',{name:'开始扫码',exact:true}).focus();await page.keyboard.press('Enter');await page.keyboard.press('Space');assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);
+  await start();await page.keyboard.type('Partial');await page.getByRole('button',{name:'配置',exact:true}).click();assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);
+  await page.getByLabel('重复码策略').selectOption('debounce');await page.getByLabel('防抖窗口 (ms)').fill('60000');await page.getByRole('button',{name:'保存配置',exact:true}).click();
+  await start();await scan('Debounce');await waitCount(4);await scan('Debounce');await page.getByRole('alert').filter({hasText:'重复扫描'}).waitFor();assert.equal(await count(),4);await scan('Different');await waitCount(5);
+  // Opening a real modal clears intake; scanner keys cannot enqueue there.
+  await page.getByRole('button',{name:'明确重打',exact:true}).first().click();await page.getByRole('dialog').waitFor();await page.keyboard.type('Modal');await page.keyboard.press('Enter');
+  assert.equal(await count(),5); // Enter activates the focused Cancel button.
+  if(await page.getByRole('dialog').count())await page.getByRole('button',{name:'取消',exact:true}).click();
+  assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);
+  await page.getByRole('button',{name:'明确重打',exact:true}).first().click();await page.getByRole('button',{name:'确认重打',exact:true}).click();await waitCount(6);
+  await start();await page.keyboard.type('Discarded');await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].emit('blur'));await page.getByRole('heading',{name:'已暂停',exact:true}).waitFor();
+  await start();await scan('Returned');await waitCount(7);assert.equal(await page.evaluate(async()=>(await window.scan.history()).at(-1).label.raw),'Returned');
+  await page.getByRole('button',{name:'手工测试',exact:true}).click();await page.getByLabel('测试内容',{exact:true}).fill('https://a.co/^XZ');await page.getByRole('img',{name:/标签预览/}).waitFor();assert.ok(page.url().startsWith('file:'));
+  await page.getByRole('button',{name:'确认打印测试标签',exact:true}).click();await waitCount(8);
+  await page.getByLabel('测试内容',{exact:true}).fill('x'.repeat(1025));assert.equal((await page.getByLabel('测试内容',{exact:true}).inputValue()).length,1025);await page.getByRole('alert').filter({hasText:'raw 格式错误'}).waitFor();
+  const saved=await readFile(join(profile,'settings.json'),'utf8');assert.equal(saved.includes('Returned'),false);assert.equal(saved.includes('https://'),false);
+  await page.getByRole('button',{name:'工作台',exact:true}).click();await page.setViewportSize({width:850,height:760});await capture(page,'artifacts/compact.png');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await app.close();await writeFile(join(profile,'settings.json'),'{broken');await launch();await page.getByRole('button',{name:'备份并重置配置',exact:true}).click();await page.getByRole('button',{name:'确认恢复默认配置',exact:true}).click();await page.getByRole('button',{name:'保存配置',exact:true}).waitFor();assert.ok((await readdir(profile)).some(name=>name.startsWith('settings.json.backup-')));assert.equal(await count(),8);
+  console.log('Electron smoke passed: persistent config/reopen/corruption, real foreground keyboard frames, pause/config/modal/blur recovery, allow/debounce policies, manual input, isolation, fonts and compact layout');
+}catch(error){if(page&&!page.isClosed()){await capture(page,'artifacts/failure.png');await writeFile('artifacts/failure.html',await page.content());console.error(await page.locator('body').innerText());}throw error;}finally{if(app)await app.close().catch(()=>{});}

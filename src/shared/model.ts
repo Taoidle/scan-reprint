@@ -13,7 +13,19 @@ export type Preview = {dataUrl: string; width: number; height: number; content: 
 export const defaults: Settings = {symbology:'qrcode',aim:false,aimPrefixes:[']Q1',']C0',']E0',']d1'],width:60,height:40,dpi:203,copies:1,humanText:true,transport:'system',printer:'',host:'',port:9100};
 export const names: Record<Symbology,string> = {qrcode:'QR Code',code128:'Code 128',ean13:'EAN-13',datamatrix:'Data Matrix'};
 export const statuses: Record<Status,string> = {queued:'排队中',submitting:'提交中',submitted:'已提交 · 请核对出纸',failed:'失败 · 未提交',uncertain:'结果不确定 · 请核对'};
+export type AppConfig = {version:2; settings:Settings; duplicate:{mode:'allow'|'debounce';windowMs:number}};
+export type ConfigSnapshot = {config:AppConfig;requiresReset:boolean;message:string};
+export type WorkStatus = {active:boolean;sessionId:string;detail:string};
+export type ScanFrame = {sessionId:string;sequence:number;raw:string};
+export const configDefaults:AppConfig = {version:2,settings:defaults,duplicate:{mode:'allow',windowMs:1000}};
 export interface Api {
+  config():Promise<ConfigSnapshot>;
+  saveConfig(config:AppConfig):Promise<ConfigSnapshot>;
+  resetConfig():Promise<ConfigSnapshot>;
+  startWork():Promise<WorkStatus>;
+  pauseWork():Promise<WorkStatus>;
+  workStatus():Promise<WorkStatus>;
+  scanFrame(frame:ScanFrame):Promise<Job>;
   preview(request: Request): Promise<Preview>;
   enqueue(request: Request): Promise<Job>;
   reprint(id: string): Promise<Job>;
