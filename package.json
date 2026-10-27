@@ -1,6 +1,6 @@
 {
   "name": "scan-reprint",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "YOVAL Scan Reprint — barcode label reprinting",
   "author": "广州铱川创新科技有限公司",

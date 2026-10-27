@@ -2,9 +2,9 @@
 
 中英双语 Electron 桌面标签重印工具。[English quick start](docs/QUICKSTART.en.md)。面向 **USB 键盘模式扫码枪**，也可手工输入模拟。按照扫描得到的**内容与指定码制**重新生成标签，不复制原标签图像、排版或私有编码。
 
-> 本分支是 **YOVAL 品牌与中英 i18n 开发候选**，尚未合并/发布；安装包版本暂为 0.2.0。详见 [语言与升级说明](docs/BRANDING-I18N.md)。发布者元数据：广州铱川创新科技有限公司（无代码签名，不代表 Windows 已验证发布者）。
+> **v0.2.1**：YOVAL 品牌与中英 i18n，支持安装/首启选择语言，并保留升级前的配置与历史。详见 [语言与升级说明](docs/BRANDING-I18N.md)。发布者元数据：广州铱川创新科技有限公司（无代码签名，不代表 Windows 已验证发布者）。
 
-> 已发布版本 **0.2.0**：保存配置、明确开始/暂停的前台扫码工作模式和原创应用图标。安装包与发布说明见 [Releases](https://github.com/Taoidle/scan-reprint/releases)；真实扫码枪、打印机和 Win7 实机尚未验收。
+> 沿用 **0.2.0** 的保存配置、明确开始/暂停的前台扫码工作模式和原创应用图标。安装包与发布说明见 [Releases](https://github.com/Taoidle/scan-reprint/releases)；真实扫码枪、打印机和 Win7 实机尚未验收。
 
 ## 支持范围
 
