@@ -11,7 +11,7 @@
 - electron-builder 26.18.0：NSIS、deb、AppImage，npmRebuild=false；无自动发布、签名密钥或应用层原生模块。
 - Playwright 与 ZXing：仅开发/CI，分别用于真实 Electron UI 和生成像素解码测试，不进入业务运行路径。
 
-CI 执行生产依赖 `npm audit --omit=dev --audit-level=high`；所有漏洞结论以实际 run 输出为准。开发工具依赖升级应在专门 PR 审查，不能因 legacy 需求而将现代 runtime 锁在 Electron 22。旧 Electron 仍携带已知和未来未修复漏洞，这是公开且无法消除的支持边界。
+CI 对现代应用及工具依赖树执行 `npm audit --audit-level=high`；所有漏洞结论以实际 run 输出为准。开发工具依赖升级应在专门 PR 审查，不能因 legacy 需求而将现代 runtime 锁在 Electron 22。旧 Electron 仍携带已知和未来未修复漏洞，这是公开且无法消除的支持边界。
 
 网络打印只能指向操作员明确输入的 IP，无域名解析或 URL 打开。使用受信任打印局域网；未实现 TLS/认证。所有输出是本地数据，无遥测。
 

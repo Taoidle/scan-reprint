@@ -1,5 +1,5 @@
 import { _electron as electron } from 'playwright';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require=createRequire(import.meta.url);
@@ -12,6 +12,7 @@ try {
   await page.setViewportSize({width:1440,height:1000});
   assert.equal(await page.evaluate(()=>typeof window.require),'undefined');
   assert.equal(await page.evaluate(()=>typeof window.process),'undefined');
+  await page.screenshot({path:'artifacts/startup.png',fullPage:true});
   await page.getByLabel('打印机',{exact:true}).selectOption('CI spooler');
   await page.getByLabel('扫码内容',{exact:true}).fill('000123ABC');
   await page.getByRole('img',{name:/标签预览/}).waitFor();
@@ -38,4 +39,8 @@ try {
   assert.equal((await page.getByLabel('扫码内容',{exact:true}).inputValue()).length,1025);
   await page.getByRole('alert').filter({hasText:'raw 格式错误'}).waitFor();
   console.log('Electron smoke: isolation, preview, submission, duplicate protection, reprint, auto mode, URL safety, compact layout passed');
+} catch(error) {
+  const page=app.windows()[0];
+  if(page){await page.screenshot({path:'artifacts/failure.png',fullPage:true});await writeFile('artifacts/failure.html',await page.content());console.error(await page.locator('body').innerText());}
+  throw error;
 } finally {await app.close();}

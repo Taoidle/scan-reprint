@@ -83,6 +83,11 @@ jobs:
       - name: Select legacy runtime for real UI smoke
         if: matrix.legacy == '1'
         run: npm ci --prefix runtimes/legacy
+      - name: Record legacy dependency audit (EOL runtime remains explicitly accepted)
+        if: matrix.legacy == '1'
+        continue-on-error: true
+        shell: bash
+        run: mkdir -p artifacts && npm audit --prefix runtimes/legacy --json > artifacts/legacy-dependency-audit.json
       - name: Real Windows runtime smoke
         if: matrix.platform == 'win'
         run: npm run smoke
