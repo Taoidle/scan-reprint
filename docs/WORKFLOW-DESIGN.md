@@ -1,6 +1,6 @@
 # 扫码工作模式设计
 
-采用 frontend-app-builder 与 imagegen 技能完成工作台及配置页概念，图位于 generated_images/exec-b5ad5d68-06fd-4684-9785-e06d1347ef75.png 与 exec-6cc893ae-81bd-4ffa-b1e5-9079e5deccd9.png。不把概念作为界面静态截图；所有控件为真实 DOM。用户要求所有测试构建在 Actions，因此采用 Actions 内真实 Electron Playwright 截图，随后下载用 view_image 对照，不在本机启动 Browser/IAB 测试。
+采用 frontend-app-builder 与 imagegen 技能完成工作台及配置页概念，原始概念保存在设计工作区（不进入安装包）：generated_images/exec-b5ad5d68-06fd-4684-9785-e06d1347ef75.png 与 exec-6cc893ae-81bd-4ffa-b1e5-9079e5deccd9.png。不把概念作为界面静态截图；所有控件为真实 DOM。用户要求所有测试构建在 Actions，因此采用 Actions 内真实 Electron Playwright 截图，随后下载用 view_image 对照，不在本机启动 Browser/IAB 测试。
 
 设计 tokens：冷灰 #f4f6f8、白色面板、深蓝 #14203a、青绿 #087e80、边框 #dce3eb；Noto Sans SC；标题30px、面板21px、状态44px、正文15px、提示13px；圆角8px、间距18–28px。标题/导航一行，工作页左右两栏，下方全宽记录表；配置两列，底部保存操作；测试页复用预览和编码输入。
 
@@ -12,4 +12,23 @@
 
 图标：深蓝圆角底、白色条码、青绿扫描角和回转箭头，不含文字或第三方商标。SVG 是唯一源文件，PNG/ICO 只在 Actions 生成；验证资源存在、格式和尺寸，以及 Windows 可执行文件包含定制图标资源。操作系统实际任务栏/快捷方式展示仍需安装实测。
 
-最终视觉对照与 CI 证据待填写，不能提前声明完成。
+## 视觉与行为对照记录
+
+2026-10-27 已使用 view_image 在同一 QA 轮次直接查看两张原始概念与 Actions 截图（startup/configuration/workstation），再查看 16 px / 256 px 图标。截图来自 [Actions 40489786836](https://github.com/Taoidle/scan-reprint/actions/runs/40489786836) 的同一开发提交；最终 PR head 的验证链接写在 PR 正文，不因记录 run 而循环生成提交。
+
+| 检查点 | 概念与实现对照 |
+|---|---|
+| 信息结构 | 保留左工作状态与开始/暂停、右最近标签、底部全宽打印历史；配置和手工测试为独立页面 |
+| 视觉层级 | 44 px 工作状态和全宽青绿主按钮；较小的配置摘要与帮助文案，操作入口明确 |
+| 色彩与字体 | 深蓝标题、青绿操作、冷灰背景与白面板；使用随包 Noto Sans SC，无字体 CDN |
+| 对齐与比例 | 双栏同高、24 px 间距；预览实际打印位图保持毫米比例；空白标签已修正为居中 |
+| 配置页 | 两个面板分别承担标签/编码与打印/重复策略，底部保存；有意使用紧凑双列数字字段，适应 850 px 最小宽度 |
+| 导航与状态 | 使用浅青绿选中导航和文字/圆点状态，不仅靠颜色；原生模态框可键盘取消，关闭后不自动恢复 |
+| 图标 | 原创扫描角、条码、回转箭头，16 px 仍可辨轮廓；已修复旧 CSP 只允许 data 图片导致本地 SVG 不显示的问题 |
+| 有意偏离 | 不画假的 OS 标题栏；首次没有虚构打印机；AIM 默认关闭；按钮纯色；导航使用浅底选中样式，字号比概念紧凑以容纳真实状态说明 |
+
+本轮 Actions 已通过 38 项 unit、lint、typecheck、根依赖审计、真实 Electron 工作流 smoke 及四目标打包/生产入口 smoke。验证包含重开持久化、损坏设置显式备份恢复、连续相同/不同帧、指定防抖过期、暂停后 Enter/空格不启动、配置/模态框/原生 blur 事件、手工输入和资源隔离。blur 测试通过 Electron 原生窗口事件注入；真实切到其他操作系统程序与硬件 HID 仍列入人工验收。
+
+图标验证包括七个 ICO 分辨率、PNG 透明边角、Windows EXE 中嵌入的 256 px 自定义资源、asar 内 PNG 的 nativeImage 加载、界面 SVG，以及 deb 安装目录的六个常用尺寸。不能据此声称真实 Win7 shell、任务栏图标缓存、所有桌面环境的 AppImage 集成均已测试。安装包未签名。
+
+本机没有运行应用、测试、构建或图标转换；本机仅编辑/锁文件元数据更新，并读取 CI 已生成的图像。Browser/IAB 本地运行检查由用户指定的 Actions Electron smoke 和离线截图查看替代。

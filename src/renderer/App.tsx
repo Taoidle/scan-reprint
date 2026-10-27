@@ -28,7 +28,7 @@ export function App(){
       if(!active.current.active||!document.hasFocus())return;
       if(e.key==='Escape'){e.preventDefault();pause();return;}
       const target=e.target as HTMLElement;
-      if(target.closest('input,textarea,select,button,a,[contenteditable="true"],dialog')){if(framer.current.length)framer.current.invalidate('焦点已改变，请重新扫描');return;}
+      if(target.closest('input,textarea,select,button,a,[contenteditable="true"],dialog')){pause();return;}
       if(e.ctrlKey||e.metaKey||e.altKey){framer.current.invalidate('扫描包含快捷键，已拒绝整帧');return;}
       if(['Shift','CapsLock','Control','Alt','Meta'].includes(e.key))return;
       if(e.key==='Tab'){framer.current.invalidate('扫描包含 Tab，需使用 Enter 结束后缀');return;}

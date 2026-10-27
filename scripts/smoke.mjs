@@ -7,7 +7,7 @@ const require=createRequire(import.meta.url),executablePath=process.env.LEGACY==
 await mkdir('artifacts',{recursive:true});
 const env={...process.env,SCAN_REPRINT_SMOKE:'1',SCAN_REPRINT_SMOKE_PROFILE:`workflow-${process.pid}-${Date.now()}`};delete env.ELECTRON_RUN_AS_NODE;
 let app,page,profile;
-const launch=async()=>{app=await electron.launch({timeout:60000,executablePath,args:['--no-sandbox','.'],env});page=await app.firstWindow({timeout:60000});page.setDefaultTimeout(30000);await page.getByRole('button',{name:'开始扫码',exact:true}).waitFor();await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].focus());};
+const launch=async()=>{app=await electron.launch({timeout:60000,executablePath,args:['--no-sandbox','.'],env});page=await app.firstWindow({timeout:60000});page.setDefaultTimeout(30000);await page.setViewportSize({width:1505,height:1045});await page.getByRole('button',{name:'开始扫码',exact:true}).waitFor();await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].focus());};
 const count=()=>page.evaluate(async()=>(await window.scan.history()).length);
 const waitCount=async n=>page.waitForFunction(async expected=>(await window.scan.history()).length===expected,n);
 const scan=async value=>{await page.keyboard.type(value);await page.keyboard.press('Enter');};
@@ -27,6 +27,7 @@ try{
   assert.deepEqual(await page.evaluate(async()=>(await window.scan.history()).map(j=>j.label.content)),[' 000aBc ',' 000aBc ','Other001']);
   await page.keyboard.press('Enter');await page.keyboard.press('Enter');assert.equal(await count(),3);
   await page.getByRole('img',{name:/标签预览/}).waitFor();await page.screenshot({path:'artifacts/workstation.png',fullPage:true});
+  await page.getByRole('button',{name:'暂停扫码',exact:true}).focus();await scan('ControlFocus');assert.equal(await count(),3);assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);await start();
   await page.getByRole('button',{name:'暂停扫码',exact:true}).click();await scan('Paused');assert.equal(await count(),3);assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);
   await page.getByRole('button',{name:'开始扫码',exact:true}).focus();await page.keyboard.press('Enter');await page.keyboard.press('Space');assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);
   await start();await page.keyboard.type('Partial');await page.getByRole('button',{name:'配置',exact:true}).click();assert.equal(await page.evaluate(async()=>(await window.scan.workStatus()).active),false);
